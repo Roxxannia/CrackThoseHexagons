@@ -39,6 +39,8 @@ def detect_hexagons(image_path, show_result=True):
     output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     
     hexagons = []
+    centroids = []
+
     for cnt in contours:
         # Approximate contour to polygon
         epsilon = 0.04 * cv2.arcLength(cnt, True)
@@ -66,16 +68,20 @@ def detect_hexagons(image_path, show_result=True):
 
                 if not intersects:
                     hexagons.append(approx)
-                    cX, cY = findCentroids(contours = cnt)
+                    cX, cY = findCentroids(contours = approx)
                     cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
+                    centroids.append((cX, cY))
                     #Need to record the cX and cY to compare later
+
                     cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
 
     if show_result:
         print(f"Detected {len(hexagons)} hexagons.")
         showImage("Detected Hexagons", output)
+        # Printing all the centroids found
+        # print(f"Detected {len(centroids)} centroids.")
 
-    return hexagons
+    return hexagons, centroids, output
 
 def findCentroids(contours):
     M = cv2.moments(contours)
@@ -91,25 +97,36 @@ def findCentroids(contours):
     return cX, cY
 
 #k=6
-def nearestNeighbours(centroid, k):
+def nearestNeighbours(centroid, k, image):
+    neighbours = {}
 
-    
-    for c in centroid:
+    for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
-        EuDistance = [np.linalg.norm(x - c) for x in centroid]
+        EuDistance = [np.linalg.norm(np.array(x) - np.array(c)) for x in centroid]
+        EuDistance[index] = float('inf')  # exclude self
 
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
-        #ALSO DISTANCE CANNOT BE ZERO
         N_distance = np.argsort(EuDistance, kind='stable')[:k]      
 
         # Get the target values of the K nearest neighbors
         kNN = [centroid[i] for i in N_distance]
-    return kNN
+        neighbours[index] = kNN
+
+        
+    for i in range(len(centroid)):
+        for n in neighbours[i]:
+            cv2.line(output, centroid[i], n, (255, 0, 0), 1)
+
+    showImage("Nearest Neighbors", output)
+
+    return neighbours
 
 # Example usage:
 if __name__ == "__main__":
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  # Replace with your image path
-    hexagons = detect_hexagons(image_path)
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
+    hexagons, centroids, output = detect_hexagons(image_path)
+    nearestNeighbours(centroids, 6, output)
+
     
 
 
