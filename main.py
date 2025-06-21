@@ -78,8 +78,6 @@ def detect_hexagons(image_path, show_result=True):
     if show_result:
         print(f"Detected {len(hexagons)} hexagons.")
         showImage("Detected Hexagons", output)
-        # Printing all the centroids found
-        # print(f"Detected {len(centroids)} centroids.")
 
     
     return hexagons, centroids, output
@@ -100,7 +98,6 @@ def findCentroids(contours):
 #k=6
 def nearestNeighbours(centroid, k, image):
     neighbours = {}
-    medians = {}
 
     for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
@@ -112,7 +109,6 @@ def nearestNeighbours(centroid, k, image):
         # N_distance is just a group of indices of the closest points
         N_distance = np.argsort(EuDistance, kind='stable')[:k]  
           
-
         # Get the target values of the K nearest neighbors as long as they are under certain distance (pixels)
         nearest = []
         for dist in N_distance:
@@ -122,13 +118,7 @@ def nearestNeighbours(centroid, k, image):
         kNN = [centroid[i] for i in nearest]
 
         neighbours[index] = kNN
-        # print(type(kNN))
-        # print(np.median(kNN, axis = 0))
-        # print(1.1*np.median(kNN, axis =0))
-        # medians[index] = 1.1*np.median(kNN, axis = 0)
 
-
-    printLine = True
     for i in range(len(centroid)):
         for n in neighbours[i]:
             cv2.line(output, centroid[i], n, (255, 0, 0), 1)
