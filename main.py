@@ -99,10 +99,12 @@ def findCentroids(contours):
 #k=6
 def nearestNeighbours(centroid, k, image):
     neighbours = {}
+    medians = {}
 
     for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
         EuDistance = [np.linalg.norm(np.array(x) - np.array(c)) for x in centroid]
+        # Exclude the centroid itself from the nearest distance
         EuDistance[index] = float('inf')  # exclude self
 
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
@@ -111,10 +113,18 @@ def nearestNeighbours(centroid, k, image):
         # Get the target values of the K nearest neighbors
         kNN = [centroid[i] for i in N_distance]
         neighbours[index] = kNN
+        # print(kNN)
+        # print(np.median(kNN, axis = 0))
+        # print(1.1*np.median(kNN, axis =0))
+        medians[index] = 1.1*np.median(kNN, axis = 0)
 
-        
+
+    printLine = True
     for i in range(len(centroid)):
         for n in neighbours[i]:
+            # if n > medians[i]:
+            #     printLine = False
+            # else:
             cv2.line(output, centroid[i], n, (255, 0, 0), 1)
 
     showImage("Nearest Neighbors", output)
@@ -123,7 +133,7 @@ def nearestNeighbours(centroid, k, image):
 
 # Example usage:
 if __name__ == "__main__":
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  # Replace with your image path
     hexagons, centroids, output = detect_hexagons(image_path)
     nearestNeighbours(centroids, 6, output)
 
