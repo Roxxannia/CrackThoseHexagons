@@ -1,33 +1,35 @@
 import cv2
 import numpy as np
 
+def showImage(name, image):
+    cv2.imshow(name, image)
+    cv2.waitKey(0)
+
 def detect_hexagons(image_path, show_result=True):
     # Load image in grayscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise ValueError("Image not found or path is incorrect.")
 
-    #equalized_image = cv2.equalizeHist(img)
+    
     # Blur to reduce noise
     blurred = cv2.GaussianBlur(img, (5,5), 0)
-    cv2.imshow("Blurred Image", blurred)
-    cv2.waitKey(0)
+    showImage("Blurred Image", blurred)
 
     #Threshold image to b&w
     # thresh = cv2.threshold(blurred, 100, 255,cv2.THRESH_BINARY)[1]
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
 
+
     #Edge detection
     edges = cv2.Canny(th3, 25,45)
-    cv2.imshow("Edge Image", edges)
-    cv2.waitKey(0)
+    showImage("Edge Image", edges)
 
     #thicken edge lines
     kernel = np.ones((2,2),np.uint8)
     dilation = cv2.dilate(edges,kernel,iterations = 1)
-    cv2.imshow("Dilated Edges", dilation)
-    cv2.waitKey(0)
+    showImage("Dilated Edges", dilation)
 
     # Find contours
     contours, _ = cv2.findContours(dilation, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -47,6 +49,7 @@ def detect_hexagons(image_path, show_result=True):
             area = cv2.contourArea(approx)
             if area > 10 and area < 120: 
                 intersects = False
+                
                 #check if the hexagon intersects with a pre-existing hexagons
                 # Create a mask for the current hexagon
                 mask = np.zeros(img.shape, dtype=np.uint8)
@@ -63,20 +66,32 @@ def detect_hexagons(image_path, show_result=True):
 
                 if not intersects:
                     hexagons.append(approx)
+                    cX, cY = findCentroids(contours = cnt)
+                    cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
                     cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
+
     if show_result:
         print(f"Detected {len(hexagons)} hexagons.")
-        print(hexagons[0], "\n", hexagons[-1])
-        cv2.imshow("Detected Hexagons", output)
-        cv2.waitKey(0)
+        showImage("Detected Hexagons", output)
 
-    
-        
     return hexagons
+
+def findCentroids(contours):
+    M = cv2.moments(contours)
+                
+    # Preventing getting errors            
+    if M["m00"] != 0:
+        # Find the centroid of the image, convert it to binary format and then find its center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+    else:
+        cX, cY = 0, 0
+
+    return cX, cY
 
 # Example usage:
 if __name__ == "__main__":
-    image_path = "hexagons_medium.png"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
     hexagons = detect_hexagons(image_path)
     
 
