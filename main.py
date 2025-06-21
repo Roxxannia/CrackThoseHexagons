@@ -68,6 +68,7 @@ def detect_hexagons(image_path, show_result=True):
                     hexagons.append(approx)
                     cX, cY = findCentroids(contours = cnt)
                     cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
+                    #Need to record the cX and cY to compare later
                     cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
 
     if show_result:
@@ -89,9 +90,25 @@ def findCentroids(contours):
 
     return cX, cY
 
+#k=6
+def nearestNeighbours(centroid, k):
+
+    
+    for c in centroid:
+        # Calculate euclidean distances between each centroid and all other centroids
+        EuDistance = [np.linalg.norm(x - c) for x in centroid]
+
+        # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
+        #ALSO DISTANCE CANNOT BE ZERO
+        N_distance = np.argsort(EuDistance, kind='stable')[:k]      
+
+        # Get the target values of the K nearest neighbors
+        kNN = [centroid[i] for i in N_distance]
+    return kNN
+
 # Example usage:
 if __name__ == "__main__":
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  # Replace with your image path
     hexagons = detect_hexagons(image_path)
     
 
