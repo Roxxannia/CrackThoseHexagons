@@ -81,12 +81,13 @@ def detect_hexagons(image_path, show_result=True):
         # Printing all the centroids found
         # print(f"Detected {len(centroids)} centroids.")
 
+    
     return hexagons, centroids, output
 
 def findCentroids(contours):
     M = cv2.moments(contours)
                 
-    # Preventing getting errors            
+    # Preventing getting errors   
     if M["m00"] != 0:
         # Find the centroid of the image, convert it to binary format and then find its center
         cX = int(M["m10"] / M["m00"])
@@ -108,32 +109,37 @@ def nearestNeighbours(centroid, k, image):
         EuDistance[index] = float('inf')  # exclude self
 
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
-        N_distance = np.argsort(EuDistance, kind='stable')[:k]      
+        # N_distance is just a group of indices of the closest points
+        N_distance = np.argsort(EuDistance, kind='stable')[:k]  
+          
 
-        # Get the target values of the K nearest neighbors
-        kNN = [centroid[i] for i in N_distance]
+        # Get the target values of the K nearest neighbors as long as they are under certain distance (pixels)
+        nearest = []
+        for dist in N_distance:
+            if EuDistance[dist] < np.sqrt(15**2+15**2):
+                nearest.append(dist)
+ 
+        kNN = [centroid[i] for i in nearest]
+
         neighbours[index] = kNN
-        # print(kNN)
+        # print(type(kNN))
         # print(np.median(kNN, axis = 0))
         # print(1.1*np.median(kNN, axis =0))
-        medians[index] = 1.1*np.median(kNN, axis = 0)
+        # medians[index] = 1.1*np.median(kNN, axis = 0)
 
 
     printLine = True
     for i in range(len(centroid)):
         for n in neighbours[i]:
-            # if n > medians[i]:
-            #     printLine = False
-            # else:
             cv2.line(output, centroid[i], n, (255, 0, 0), 1)
 
-    showImage("Nearest Neighbors", output)
+    showImage("Nearest Neighbors", image)
 
     return neighbours
 
 # Example usage:
 if __name__ == "__main__":
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
     hexagons, centroids, output = detect_hexagons(image_path)
     nearestNeighbours(centroids, 6, output)
 
