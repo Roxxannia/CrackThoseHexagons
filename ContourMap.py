@@ -2,10 +2,12 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
+import time
 
 def showImage(name, image):
     cv2.imshow(name, image)
     # cv2.waitKey(0)
+    
 
 def detect_hexagons(image_path, show_result=True):
     # Load image in grayscale
@@ -126,6 +128,7 @@ def nearestNeighbours(centroid, k, image):
             cv2.line(output, centroid[i], n, (255, 0, 0), 1)
 
     showImage("Nearest Neighbors", image)
+    cv2.imwrite('Nearest_neigh.png',image)
 
     return neighbours
 
@@ -176,11 +179,15 @@ def contourMap(output, centroids, neighbours):
     plt.legend()
     plt.gca().invert_yaxis()
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig('contourmap.png')
 
 
 # Example usage:
 if __name__ == "__main__":
+
+    start_time = time.time()
+
     image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  # Replace with your image path
     hexagons, centroids, output = detect_hexagons(image_path)
     
@@ -190,7 +197,9 @@ if __name__ == "__main__":
     contourMap(output, centroids, neighbours)
     
 
-
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(elapsed_time)
     
 
 
