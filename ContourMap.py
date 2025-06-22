@@ -169,7 +169,7 @@ def contourMap(output, centroids, neighbours):
     # Step 4: Plot the strain contour map
     Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
 
-    plt.figure(figsize=(5, 5))
+    plt.figure(figsize=(8, 6))
     contour = plt.contourf(X, Y, smooth_strain, levels=50, cmap='plasma')
     plt.colorbar(contour, label='Estimated Local Strain')
     plt.scatter([x for x, y in centroids], [y for x, y in centroids], color='white', s=3, label='Centroids')
