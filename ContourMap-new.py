@@ -4,10 +4,20 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 import time
 
+# Show Image function
 def showImage(name, image):
     cv2.imshow(name, image)
     cv2.waitKey(0)
-    
+
+# Convert pixels to nm with the scale bar
+def conversion():
+    # Scale bar 200nm 
+    # Scale bar = 166 pixels
+    # about 1.205 nm/pixel
+
+    scale = 200/166
+
+    return round(float(scale),3)
 
 def detect_hexagons(image_path, show_result=True):
     # Load image in grayscale
@@ -21,7 +31,6 @@ def detect_hexagons(image_path, show_result=True):
     showImage("Blurred Image", blurred)
 
     #Threshold image to b&w
-    # thresh = cv2.threshold(blurred, 100, 255,cv2.THRESH_BINARY)[1]
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
 
@@ -54,39 +63,12 @@ def detect_hexagons(image_path, show_result=True):
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
             if area > 10 and area < 120: 
-                # area < 120 with previous image used
-                # intersects = False
-                
-                #check if the hexagon intersects with a pre-existing hexagons
-                # Create a mask for the current hexagon
-
-                # mask = np.zeros(img.shape, dtype=np.uint8)
-                # cv2.drawContours(mask, [approx], -1, 255, -1)
-
-                # for prev_hex in hexagons:
-                #     prev_mask = np.zeros(img.shape, dtype=np.uint8)
-                #     cv2.drawContours(prev_mask, [prev_hex], -1, 255, -1)
-                #     # Check intersection
-                #     intersection = cv2.bitwise_and(mask, prev_mask)
-                #     if np.any(intersection):
-                #         intersects = True
-                #         break
-
-                # if not intersects:
-                #     hexagons.append(approx)
-                #     cX, cY = findCentroids(contours = approx)
-                #     cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
-                #     centroids.append((cX, cY))
-                #     #Need to record the cX and cY to compare later
-
-                #     cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
-
                 #---------New method------
                 hexagons.append(approx)
                 cX, cY = findCentroids(contours = approx)
                 centroids.append(np.array([cX, cY]))
     
-    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold = 4)
+    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold = 3.5)
     for c in filtered_hexagons:
         cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
 
@@ -104,6 +86,7 @@ def detect_hexagons(image_path, show_result=True):
     return filtered_hexagons, filtered_centroids, output
 
 def findCentroids(contours):
+    # Moment is the weighted average of image pixel intensities
     M = cv2.moments(contours)
                 
     # Preventing getting errors   
@@ -118,15 +101,20 @@ def findCentroids(contours):
 
 def remove_duplicate_hexagons(hexagons, centroids, threshold):
     n = len(centroids)
+    # Create a matrix of boolean value that's the same size as centroids
     keep = [True] * n
 
     for i in range(n):
         if not keep[i]:
             continue
         for j in range(i + 1, n):
+            # Calculate if there are centroids that are too close to each other, if there is then its possible that its duplicated
             if keep[j] and np.linalg.norm(centroids[i] - centroids[j]) < threshold:
-                keep[j] = False  # Remove duplicate
+                # Change corresponding boolean value in keep to False
+                # Only keeping the first found value
+                keep[j] = False  
 
+    # Filter out the hexagons and centroids with the keep matrix
     filtered_hexagons = [hexagons[i] for i in range(n) if keep[i]]
     filtered_centroids = [centroids[i] for i in range(n) if keep[i]]
 
@@ -166,16 +154,9 @@ def nearestNeighbours(centroid, k, image):
     # If you want to save the image, uncomment this line
     # cv2.imwrite('Nearest_neigh.png',image)
 
-    return neighbours
+    return neighbours, EuDistance
 
-def conversion():
-    # Scale bar 200nm 
-    # Scale bar = 166 pixels
-    # about 1.47 nm/pixel
 
-    scale = 200/166
-
-    return round(float(scale),3)
 
 def contourMap(output, centroids, neighbours):
     # Create blank with the dimension of the original image
@@ -227,26 +208,38 @@ def contourMap(output, centroids, neighbours):
     plt.show()
     # plt.savefig('contourmap.png')
 
+def elapsedTime(start_time):
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(elapsed_time)
 
 # Example usage:
 if __name__ == "__main__":
 
-    start_time = time.time()
+    # start_time = time.time()
 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  # Replace with your image path
+    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"
     hexagons, centroids, output = detect_hexagons(image_path)
 
-    
+    scale = conversion()
+
     # Obtain the neighbours
-    neighbours = nearestNeighbours(centroids, 6, output) 
+    neighbours, distance = nearestNeighbours(centroids, 6, output) 
+    
+    # The distance returned above is just the last matrix euclidean distance matrix that was calculated for the last centroid
+    # Can use this conversion to convert euclidean distance from pixels to nm 
+    print(np.array(distance)*scale)
+
+
+
+
 
     # contourMap(output, centroids, neighbours)
     
-    # conversion()
+    # elapsedTime(start_time)
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    # print(elapsed_time)
+    
     
 
 
