@@ -135,11 +135,21 @@ def nearestNeighbours(centroid, k, image):
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
         # N_distance is just a group of indices of the closest points
         N_distance = np.argsort(EuDistance, kind='stable')[:k]  
-          
+
+        kNN_temp = [EuDistance[n] for n in N_distance]
+        avg = np.mean(kNN_temp)
+        # for dist in N_distance:
+        #     sum += EuDistance[dist]
+        
+        # avg = sum/6
+
+        standardDev = np.std(kNN_temp)  
+        # print(standardDev)
         # Get the target values of the K nearest neighbors as long as they are under certain distance (pixels)
         nearest = []
         for dist in N_distance:
-            if EuDistance[dist] < np.sqrt(15**2+15**2):
+            # EuDistance[dist] < np.sqrt(15**2+15**2) and
+            if EuDistance[dist] <= avg or standardDev <= 2:
                 nearest.append(dist)
  
         kNN = [centroid[i] for i in nearest]
@@ -164,8 +174,6 @@ def contourMap(output, centroids, neighbours):
     strain_map = np.zeros((height, width))
     count_map = np.zeros((height, width))
 
-    
-
     for i, center in enumerate(centroids):
         neighbour_pts = neighbours[i]
         if len(neighbour_pts) == 0:        #what is this line doing?
@@ -173,7 +181,6 @@ def contourMap(output, centroids, neighbours):
 
         # Mean distance to neighbors
         distances = [np.linalg.norm(np.array(center) - np.array(n)) for n in neighbour_pts]
-
         strain = 1/np.mean(distances)  #Smaller distance, less strain, 
 
         # Accumulate strain at the centroid location
@@ -235,7 +242,7 @@ if __name__ == "__main__":
 
 
 
-    # contourMap(output, centroids, neighbours)
+    #contourMap(output, centroids, neighbours)
     
     # elapsedTime(start_time)
 
