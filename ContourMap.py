@@ -53,7 +53,7 @@ def detect_hexagons(image_path, show_result=True):
         # Check for hexagon: 6 vertices, area threshold, and convexity
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
-            if area > 10 and area < 80: 
+            if area > 10 and area < 120: 
                 # area < 120 with previous image used
                 # intersects = False
                 
@@ -100,7 +100,8 @@ def detect_hexagons(image_path, show_result=True):
         showImage("Detected Hexagons", output)
 
     
-    return hexagons, centroids, output
+    # return hexagons, centroids, output
+    return filtered_hexagons, filtered_centroids, output
 
 def findCentroids(contours):
     M = cv2.moments(contours)
@@ -168,10 +169,10 @@ def nearestNeighbours(centroid, k, image):
 
 def conversion():
     # Scale bar 200nm 
-    # Scale bar = 136 pixels
+    # Scale bar = 166 pixels
     # about 1.47 nm/pixel
 
-    scale = 200/136
+    scale = 200/166
 
     return round(float(scale),3)
 
@@ -231,16 +232,16 @@ if __name__ == "__main__":
 
     # start_time = time.time()
 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hex-2.png"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  # Replace with your image path
     hexagons, centroids, output = detect_hexagons(image_path)
     # print(centroids)
     
     # Obtain the neighbours
-    # neighbours = nearestNeighbours(centroids, 6, output) 
+    neighbours = nearestNeighbours(centroids, 6, output) 
 
     # contourMap(output, centroids, neighbours)
     
-    conversion()
+    # conversion()
 
     # end_time = time.time()
     # elapsed_time = end_time - start_time
