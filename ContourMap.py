@@ -6,7 +6,7 @@ import time
 
 def showImage(name, image):
     cv2.imshow(name, image)
-    # cv2.waitKey(0)
+    cv2.waitKey(0)
     
 
 def detect_hexagons(image_path, show_result=True):
@@ -37,7 +37,7 @@ def detect_hexagons(image_path, show_result=True):
 
     # Find contours
     contours, _ = cv2.findContours(dilation, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
+    # print(contours[0])
 
     # Convert grayscale to BGR for visualization
     output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
@@ -53,34 +53,50 @@ def detect_hexagons(image_path, show_result=True):
         # Check for hexagon: 6 vertices, area threshold, and convexity
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
-            if area > 10 and area < 120: 
-                intersects = False
+            if area > 10 and area < 80: 
+                # area < 120 with previous image used
+                # intersects = False
                 
                 #check if the hexagon intersects with a pre-existing hexagons
                 # Create a mask for the current hexagon
-                mask = np.zeros(img.shape, dtype=np.uint8)
-                cv2.drawContours(mask, [approx], -1, 255, -1)
 
-                for prev_hex in hexagons:
-                    prev_mask = np.zeros(img.shape, dtype=np.uint8)
-                    cv2.drawContours(prev_mask, [prev_hex], -1, 255, -1)
-                    # Check intersection
-                    intersection = cv2.bitwise_and(mask, prev_mask)
-                    if np.any(intersection):
-                        intersects = True
-                        break
+                # mask = np.zeros(img.shape, dtype=np.uint8)
+                # cv2.drawContours(mask, [approx], -1, 255, -1)
 
-                if not intersects:
-                    hexagons.append(approx)
-                    cX, cY = findCentroids(contours = approx)
-                    cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
-                    centroids.append((cX, cY))
-                    #Need to record the cX and cY to compare later
+                # for prev_hex in hexagons:
+                #     prev_mask = np.zeros(img.shape, dtype=np.uint8)
+                #     cv2.drawContours(prev_mask, [prev_hex], -1, 255, -1)
+                #     # Check intersection
+                #     intersection = cv2.bitwise_and(mask, prev_mask)
+                #     if np.any(intersection):
+                #         intersects = True
+                #         break
 
-                    cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
+                # if not intersects:
+                #     hexagons.append(approx)
+                #     cX, cY = findCentroids(contours = approx)
+                #     cv2.circle(output, (cX, cY), 0, (0, 255, 0), -1)
+                #     centroids.append((cX, cY))
+                #     #Need to record the cX and cY to compare later
+
+                #     cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
+
+                #---------New method------
+                hexagons.append(approx)
+                cX, cY = findCentroids(contours = approx)
+                centroids.append(np.array([cX, cY]))
+    
+    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold = 3)
+    for c in filtered_hexagons:
+        cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
+
+    for h in filtered_centroids:
+        cv2.circle(output, h, 0, (0, 255, 0), -1)
+
+    
 
     if show_result:
-        print(f"Detected {len(hexagons)} hexagons.")
+        print(f"Detected {len(filtered_hexagons)} hexagons.")
         showImage("Detected Hexagons", output)
 
     
@@ -98,6 +114,24 @@ def findCentroids(contours):
         cX, cY = 0, 0
 
     return cX, cY
+
+def remove_duplicate_hexagons(hexagons, centroids, threshold):
+    n = len(centroids)
+    keep = [True] * n
+
+    for i in range(n):
+        if not keep[i]:
+            continue
+        for j in range(i + 1, n):
+            if keep[j] and np.linalg.norm(centroids[i] - centroids[j]) < threshold:
+                keep[j] = False  # Remove duplicate
+
+    filtered_hexagons = [hexagons[i] for i in range(n) if keep[i]]
+    filtered_centroids = [centroids[i] for i in range(n) if keep[i]]
+
+    return filtered_hexagons, filtered_centroids
+
+
 
 #k=6
 def nearestNeighbours(centroid, k, image):
@@ -125,12 +159,21 @@ def nearestNeighbours(centroid, k, image):
 
     for i in range(len(centroid)):
         for n in neighbours[i]:
-            cv2.line(output, centroid[i], n, (255, 0, 0), 1)
+            cv2.line(image, centroid[i], n, (255, 0, 0), 1)
 
     showImage("Nearest Neighbors", image)
-    cv2.imwrite('Nearest_neigh.png',image)
+    # cv2.imwrite('Nearest_neigh.png',image)
 
     return neighbours
+
+def conversion():
+    # Scale bar 200nm 
+    # Scale bar = 136 pixels
+    # about 1.47 nm/pixel
+
+    scale = 200/136
+
+    return round(float(scale),3)
 
 def contourMap(output, centroids, neighbours):
     # Create blank with the dimension of the original image
@@ -156,7 +199,7 @@ def contourMap(output, centroids, neighbours):
             strain_map[cy, cx] += strain
             count_map[cy, cx] += 1
 
-    #y = row 
+    # y = row 
     # x = column
 
     # Avoid division by zero
@@ -179,27 +222,29 @@ def contourMap(output, centroids, neighbours):
     plt.legend()
     plt.gca().invert_yaxis()
     plt.tight_layout()
-    # plt.show()
-    plt.savefig('contourmap.png')
+    plt.show()
+    # plt.savefig('contourmap.png')
 
 
 # Example usage:
 if __name__ == "__main__":
 
-    start_time = time.time()
+    # start_time = time.time()
 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  # Replace with your image path
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hex-2.png"  # Replace with your image path
     hexagons, centroids, output = detect_hexagons(image_path)
+    # print(centroids)
     
     # Obtain the neighbours
-    neighbours = nearestNeighbours(centroids, 6, output) 
+    # neighbours = nearestNeighbours(centroids, 6, output) 
 
-    contourMap(output, centroids, neighbours)
+    # contourMap(output, centroids, neighbours)
     
+    conversion()
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    print(elapsed_time)
+    # end_time = time.time()
+    # elapsed_time = end_time - start_time
+    # print(elapsed_time)
     
 
 
