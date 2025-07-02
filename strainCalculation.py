@@ -7,7 +7,7 @@ import time
 # Show Image function
 def showImage(name, image):
     cv2.imshow(name, image)
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
 
 # Convert pixels to nm with the scale bar
 def conversion():
@@ -168,7 +168,7 @@ def contourMap(output, centroids, neighbours):
 
     for i, center in enumerate(centroids):
         neighbour_pts = neighbours[i]
-        if len(neighbour_pts) == 0:
+        if len(neighbour_pts) == 0:        #what is this line doing?
             continue
 
         # Mean distance to neighbors
