@@ -218,8 +218,8 @@ if __name__ == "__main__":
 
     # start_time = time.time()
 
-    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
+    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"
     hexagons, centroids, output = detect_hexagons(image_path)
 
     scale = conversion()

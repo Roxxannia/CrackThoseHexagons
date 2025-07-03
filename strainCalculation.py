@@ -125,7 +125,8 @@ def remove_duplicate_hexagons(hexagons, centroids, threshold):
 #k=6
 def nearestNeighbours(centroid, k, image):
     neighbours = {}
-
+    neighbours_temp = {}
+    x = 0
     for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
         EuDistance = [np.linalg.norm(np.array(x) - np.array(c)) for x in centroid]
@@ -147,10 +148,14 @@ def nearestNeighbours(centroid, k, image):
         # print(standardDev)
         # Get the target values of the K nearest neighbors as long as they are under certain distance (pixels)
         nearest = []
+        
         for dist in N_distance:
             # EuDistance[dist] < np.sqrt(15**2+15**2) and
             if EuDistance[dist] <= avg or standardDev <= 2:
                 nearest.append(dist)
+                neighbours_temp[x] = ([centroid[index],centroid[dist]])
+                x += 1
+
  
         kNN = [centroid[i] for i in nearest]
 
@@ -164,7 +169,7 @@ def nearestNeighbours(centroid, k, image):
     # If you want to save the image, uncomment this line
     # cv2.imwrite('Nearest_neigh.png',image)
 
-    return neighbours, EuDistance
+    return neighbours, EuDistance, neighbours_temp
 
 
 
@@ -224,19 +229,44 @@ def elapsedTime(start_time):
 if __name__ == "__main__":
 
     # start_time = time.time()
-
-    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
-    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_lightRoom.jpg"
+# 
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  
+    # image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_tiny.png"
     hexagons, centroids, output = detect_hexagons(image_path)
 
     scale = conversion()
 
     # Obtain the neighbours
-    neighbours, distance = nearestNeighbours(centroids, 6, output) 
+    neighbours, distance, temp = nearestNeighbours(centroids, 6, output) 
+    print(temp[0][0][0])
+    print(temp[0][1])
+
+    # i = 0
+    # for i in range(len(temp)):
+    #     for h in range(len(temp)):
+    #         if np.array_equal(temp[i][0],temp [h][1]) and np.array_equal(temp[i][1],temp[h][0]):
+    #         # if temp[i].all() == temp [h][1] and temp[i][1] == temp[h][0]:
+    #             temp.pop(h)
+
+ 
+
+    x = 0
+    keep = [True] * len(temp)
+    for i in range(int(len(temp)/2)):
+        for h in range(len(temp)-1,int(len(temp)/2), -1):
+            if i != h and np.array_equal(temp[i][0], temp[h][1]) and np.array_equal(temp[i][1], temp[h][0]):
+                keep[i] =False
+
+    filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
+    print(keep)
+    print(filtered_data)
+
+  
+
     
     # The distance returned above is just the last matrix euclidean distance matrix that was calculated for the last centroid
     # Can use this conversion to convert euclidean distance from pixels to nm 
-    print(np.array(distance)*scale)
+    # print(np.array(distance)*scale)
 
 
 
