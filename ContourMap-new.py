@@ -218,10 +218,14 @@ if __name__ == "__main__":
 
     # start_time = time.time()
 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
+    #Roxxannia's image paths
+    #image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
     # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"
+    
+    #Sophie's image paths
+    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_tiny.png"
+    
     hexagons, centroids, output = detect_hexagons(image_path)
-
     scale = conversion()
 
     # Obtain the neighbours
