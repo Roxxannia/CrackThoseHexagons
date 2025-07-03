@@ -248,18 +248,23 @@ if __name__ == "__main__":
     #         # if temp[i].all() == temp [h][1] and temp[i][1] == temp[h][0]:
     #             temp.pop(h)
 
- 
-
+    # new_temp = {}
+    # new_temp = []
     x = 0
     keep = [True] * len(temp)
-    for i in range(int(len(temp)/2)):
+    # int(len(temp)/2)
+    for i in range(len(temp)):
         for h in range(len(temp)-1,int(len(temp)/2), -1):
             if i != h and np.array_equal(temp[i][0], temp[h][1]) and np.array_equal(temp[i][1], temp[h][0]):
                 keep[i] =False
-
+                # break
+        # if not duplicate_found:
+        #     # new_temp.append(temp[i])
+        #     new_temp[x] = temp[i]
+        #     x += 1
     filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
     print(keep)
-    print(filtered_data)
+    print(filtered_data.toList())
 
   
 
