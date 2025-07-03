@@ -1,3 +1,5 @@
+# ALL THE CODE
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -230,16 +232,16 @@ if __name__ == "__main__":
 
     # start_time = time.time()
 # 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"  
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
     # image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_tiny.png"
     hexagons, centroids, output = detect_hexagons(image_path)
 
-    scale = conversion()
+    # scale = conversion()
 
     # Obtain the neighbours
     neighbours, distance, temp = nearestNeighbours(centroids, 6, output) 
-    print(temp[0][0][0])
-    print(temp[0][1])
+    # print(temp[0][0][0])
+    # print(temp[0][1])
 
     # i = 0
     # for i in range(len(temp)):
@@ -254,8 +256,10 @@ if __name__ == "__main__":
     keep = [True] * len(temp)
     # int(len(temp)/2)
     for i in range(len(temp)):
-        for h in range(len(temp)-1,int(len(temp)/2), -1):
-            if i != h and np.array_equal(temp[i][0], temp[h][1]) and np.array_equal(temp[i][1], temp[h][0]):
+        # for h in range(len(temp)-1,int(len(temp)/2), -1):
+        for h in range(i, len(temp)):
+            # if i != h and np.array_equal(temp[i][0], temp[h][1]) and np.array_equal(temp[i][1], temp[h][0]):
+            if i != h and (temp[i][0][0] == temp[h][1][0]) and (temp[i][0][1] == temp[h][1][1]) and (temp[i][1][0] == temp[h][0][0]) and (temp[i][1][1] == temp[h][0][1]):
                 keep[i] =False
                 # break
         # if not duplicate_found:
@@ -263,8 +267,19 @@ if __name__ == "__main__":
         #     new_temp[x] = temp[i]
         #     x += 1
     filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
-    print(keep)
-    print(filtered_data.toList())
+    # print(keep)
+    # print(len(filtered_data))
+    # for data in filtered_data:
+    #     print(data)
+    #     print("\n")
+
+    for i in range(len(filtered_data)):
+        cv2.line(output, filtered_data[i][0], filtered_data[i][1], (255, 100, 0), 1)
+
+    showImage("New Nearest Neighbors", output)
+
+    print(len(temp))
+    print(len(filtered_data))
 
   
 
