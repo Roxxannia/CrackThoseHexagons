@@ -1,5 +1,23 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+import time
+
+# Show Image function
+def showImage(name, image):
+    cv2.imshow(name, image)
+    cv2.waitKey(0)
+
+# Convert pixels to nm with the scale bar
+# This could be automated in the future
+def conversion():
+    # Scale bar 200nm, and 166 pixels, therefore about 1.205 nm/pixel
+    scale = 200/166
+    return round(float(scale),3)
+
+def preProcessing (image_path):
+    return
 
 def detect_hexagons(image_path, show_result=True):
     # Load image in grayscale
@@ -7,77 +25,94 @@ def detect_hexagons(image_path, show_result=True):
     if img is None:
         raise ValueError("Image not found or path is incorrect.")
 
-    #equalized_image = cv2.equalizeHist(img)
     # Blur to reduce noise
     blurred = cv2.GaussianBlur(img, (5,5), 0)
-    cv2.imshow("Blurred Image", blurred)
-    cv2.waitKey(0)
+    showImage("Blurred Image", blurred)
 
     #Threshold image to b&w
-    # thresh = cv2.threshold(blurred, 100, 255,cv2.THRESH_BINARY)[1]
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
-
+    showImage("th3", th3)
     #Edge detection
     edges = cv2.Canny(th3, 25,45)
-    cv2.imshow("Edge Image", edges)
-    cv2.waitKey(0)
+    showImage("Edge Image", edges)
 
     #thicken edge lines
     kernel = np.ones((2,2),np.uint8)
     dilation = cv2.dilate(edges,kernel,iterations = 1)
-    cv2.imshow("Dilated Edges", dilation)
-    cv2.waitKey(0)
+    showImage("Dilated Edges", dilation)
 
     # Find contours
     contours, _ = cv2.findContours(dilation, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
+    # print(contours[0])
 
     # Convert grayscale to BGR for visualization
     output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     
     hexagons = []
+    centroids = []
+
     for cnt in contours:
         # Approximate contour to polygon
         epsilon = 0.04 * cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, epsilon, True)
 
-        # Check for hexagon: 6 vertices, area threshold, and convexity
+        # Check for hexagon: min 4 vertices, area threshold, and convexity
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
             if area > 10 and area < 120: 
-                intersects = False
-                #check if the hexagon intersects with a pre-existing hexagons
-                # Create a mask for the current hexagon
-                mask = np.zeros(img.shape, dtype=np.uint8)
-                cv2.drawContours(mask, [approx], -1, 255, -1)
+                #---------New method------
+                hexagons.append(approx)
+                cX, cY = findCentroids(contours = approx)
+                centroids.append(np.array([cX, cY]))
+    
+    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold = 3.5)
+    for c in filtered_hexagons:
+        cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
 
-                for prev_hex in hexagons:
-                    prev_mask = np.zeros(img.shape, dtype=np.uint8)
-                    cv2.drawContours(prev_mask, [prev_hex], -1, 255, -1)
-                    # Check intersection
-                    intersection = cv2.bitwise_and(mask, prev_mask)
-                    if np.any(intersection):
-                        intersects = True
-                        break
+    for h in filtered_centroids:
+        cv2.circle(output, h, 0, (0, 255, 0), -1)
 
-                if not intersects:
-                    hexagons.append(approx)
-                    cv2.drawContours(output, [approx], 0, (0, 255, 0), 1)
+    
+
     if show_result:
-        print(f"Detected {len(hexagons)} hexagons.")
-        print(hexagons[0], "\n", hexagons[-1])
-        cv2.imshow("Detected Hexagons", output)
-        cv2.waitKey(0)
-
+        print(f"Detected {len(filtered_hexagons)} hexagons.")
+        showImage("Detected Hexagons", output)
     
-        
-    return hexagons
+    # return hexagons, centroids, output
+    return filtered_hexagons, filtered_centroids, output
 
-# Example usage:
-if __name__ == "__main__":
-    image_path = "hexagons_medium.png"  # Replace with your image path
-    hexagons = detect_hexagons(image_path)
-    
+def findCentroids(contours):
+    # Moment is the weighted average of image pixel intensities
+    M = cv2.moments(contours)
+                
+    # Preventing getting errors   
+    if M["m00"] != 0:
+        # Find the centroid of the image, convert it to binary format and then find its center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+    else:
+        cX, cY = 0, 0
 
+    return cX, cY
 
+def remove_duplicate_hexagons(hexagons, centroids, threshold):
+    n = len(centroids)
+    # Create a matrix of boolean value that's the same size as centroids
+    keep = [True] * n
+
+    for i in range(n):
+        if not keep[i]:
+            continue
+        for j in range(i + 1, n):
+            # Calculate if there are centroids that are too close to each other, if there is then its possible that its duplicated
+            if keep[j] and np.linalg.norm(centroids[i] - centroids[j]) < threshold:
+                # Change corresponding boolean value in keep to False
+                # Only keeping the first found value
+                keep[j] = False  
+
+    # Filter out the hexagons and centroids with the keep matrix
+    filtered_hexagons = [hexagons[i] for i in range(n) if keep[i]]
+    filtered_centroids = [centroids[i] for i in range(n) if keep[i]]
+
+    return filtered_hexagons, filtered_centroids
