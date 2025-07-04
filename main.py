@@ -168,21 +168,8 @@ def nearestNeighbours(centroid, image, threshold = 2):
                 nearest.append(dist)
                 startPointEndPoint_list[x] = ([centroid[index],centroid[dist]])
                 x += 1
-
- 
-        kNN = [centroid[i] for i in nearest]
-
-        neighbours[index] = kNN
-
-    for i in range(len(centroid)):
-        for n in neighbours[i]:
-            cv2.line(image, centroid[i], n, (255, 0, 0), 1)
-
-    showImage("Nearest Neighbors", image)
-    # If you want to save the image, uncomment this line
-    # cv2.imwrite('Nearest_neigh.png',image)
-
-    return neighbours, EuDistance, startPointEndPoint_list
+                
+    return startPointEndPoint_list
 
 def strainCalc(centroids):
     sizes = []
@@ -196,16 +183,10 @@ def strainCalc(centroids):
 
 if __name__ == "__main__":
 
-    # start_time = time.time()
+    #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
+    imagePath = "vat4-processed.jpg"
+    outline = preProcessing(imagePath)
+    hexagons, centroids, output = detectHexagons(imagePath, outline)
 
-    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/vat3-processed.jpg"
-    outline = preProcessing(image_path)
-    hexagons, centroids, output = detectHexagons(image_path, outline)
-
-    # scale = conversion()
-
-    neighbours, distance, temp = nearestNeighbours(centroids, output) 
+    temp = nearestNeighbours(centroids, output) 
     removeDuplicateNeighbours(temp)
-    
-    # print("filtered data: \n", filtered_data)
