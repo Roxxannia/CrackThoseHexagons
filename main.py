@@ -1,10 +1,6 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter
-import time
 
-# Show Image function
 def showImage(name, image):
     cv2.imshow(name, image)
     cv2.waitKey(0)
@@ -44,19 +40,6 @@ def preProcessing (image_path):
 
     return dilation
 
-# Displays an image with the detected polygons and centroids
-def drawHexagons(image, polygons, centroids):
-    for c in polygons:
-        cv2.drawContours(image, [c], -1, (0, 255, 0), 1)
-
-    for h in centroids:
-        cv2.circle(image, h, 0, (0, 255, 0), -1)
-
-    print(f"Detected {len(polygons)} hexagons.")
-    showImage("Detected Hexagons", image)
-
-    return
-
 # Takes in a list of the vertices of each polygon, returns a list of center coordinates of each polygon
 def findCentroids(contours):
     # Moment is the weighted average of image pixel intensities
@@ -72,7 +55,7 @@ def findCentroids(contours):
 
     return cX, cY
 
-# Removes the hexagons that overlap
+# Removes hexagons that overlap with another
 def removeDuplicateHexagons(hexagons, centroids, threshold):
     # Create a matrix of boolean value that's the same size as centroids
     n = len(centroids)
@@ -137,8 +120,7 @@ def detectHexagons(image_path, outlines):
     return filteredHexagons, filteredCentroids, output
 
 # Remove the duplicated lines from the nearest neighbour list
-def filterNearestNeighbours(temp):
-    x = 0
+def removeDuplicateNeighbours(temp):
     keep = [True] * len(temp)
     for i in range(len(temp)):
         for h in range(i, len(temp)):
@@ -147,24 +129,21 @@ def filterNearestNeighbours(temp):
             and (temp[i][0][1] == temp[h][1][1]) \
             and (temp[i][1][0] == temp[h][0][0]) \
             and (temp[i][1][1] == temp[h][0][1]):
-                keep[i] =False
+                keep[i] = False
 
-    filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
+    filteredNeighbours = [temp[i] for i in range(len(temp)) if keep[i]]
 
-
-    for i in range(len(filtered_data)):
-        cv2.line(output, filtered_data[i][0], filtered_data[i][1], (255, 100, 0), 1)
-
+    for i in range(len(filteredNeighbours)):
+        cv2.line(output, filteredNeighbours[i][0], filteredNeighbours[i][1], (255, 100, 0), 1)
     showImage("New Nearest Neighbors", output)
-    strainCalc(filtered_data)
 
-    print(len(temp))
-    print(len(filtered_data))
-    return
+    return filteredNeighbours
 
-def nearestNeighbours(centroid, k, image):
+def nearestNeighbours(centroid, image, threshold = 2):
     neighbours = {}
-    neighbours_temp = {}
+
+    #dictionary of startpoint (centroid) and endpoint (vertex) of each neighbour
+    startPointEndPoint_list = {} 
     x = 0
     for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
@@ -173,26 +152,21 @@ def nearestNeighbours(centroid, k, image):
         EuDistance[index] = float('inf')  # exclude self
 
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
-        # N_distance is just a group of indices of the closest points
-        N_distance = np.argsort(EuDistance, kind='stable')[:k]  
+        # nearestIndices is a dictionary of indices in the EuDistance list of the nearest neighbours
+        nearestIndices = np.argsort(EuDistance, kind='stable')[:6]  
 
-        kNN_temp = [EuDistance[n] for n in N_distance]
-        avg = np.mean(kNN_temp)
-        # for dist in N_distance:
-        #     sum += EuDistance[dist]
-        
-        # avg = sum/6
+        # Save the distances of the 6 nearest neighbours to the current centroid
+        nearestDistances = [EuDistance[n] for n in nearestIndices]
+        avg = np.mean(nearestDistances)
+        standardDev = np.std(nearestDistances)  
 
-        standardDev = np.std(kNN_temp)  
-        # print(standardDev)
-        # Get the target values of the K nearest neighbors as long as they are under certain distance (pixels)
+        # Get the target values of the 6 nearest neighbors
         nearest = []
-        
-        for dist in N_distance:
-            # EuDistance[dist] < np.sqrt(15**2+15**2) and
-            if EuDistance[dist] <= avg or standardDev <= 2:
+        for dist in nearestIndices:
+            # As long as the point is relatively close to the centroid (distance<avg) OR if all points are equally close (stdDev is small)
+            if EuDistance[dist] <= avg or standardDev <= threshold:
                 nearest.append(dist)
-                neighbours_temp[x] = ([centroid[index],centroid[dist]])
+                startPointEndPoint_list[x] = ([centroid[index],centroid[dist]])
                 x += 1
 
  
@@ -208,7 +182,7 @@ def nearestNeighbours(centroid, k, image):
     # If you want to save the image, uncomment this line
     # cv2.imwrite('Nearest_neigh.png',image)
 
-    return neighbours, EuDistance, neighbours_temp
+    return neighbours, EuDistance, startPointEndPoint_list
 
 def strainCalc(centroids):
     sizes = []
@@ -231,7 +205,7 @@ if __name__ == "__main__":
 
     # scale = conversion()
 
-    neighbours, distance, temp = nearestNeighbours(centroids, 6, output) 
-    filterNearestNeighbours(temp)
+    neighbours, distance, temp = nearestNeighbours(centroids, output) 
+    removeDuplicateNeighbours(temp)
     
     # print("filtered data: \n", filtered_data)
