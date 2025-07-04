@@ -11,6 +11,13 @@ def conversion():
     scale = 200/167
     return round(float(scale),3)
 
+def findThresholds(hexSize_nm):
+    hexSize_pixels = hexSize_nm / conversion()
+    avgArea = (hexSize_pixels/2)**2 * np.pi
+    maxArea = int(avgArea) + 10
+    minArea = int(0.1 * avgArea)
+    return minArea, maxArea
+
 def preProcessing (image_path):
     #   TODO
     #   - Find the size of the scale bar in pixels
@@ -78,7 +85,7 @@ def removeDuplicateHexagons(hexagons, centroids, threshold):
     return filteredHexagons, filteredCentroids
 
 # Takes in the pre-processed b&w outlined image from pre-processing // Returns a list of coordinates of every polygon vertex and center
-def detectHexagons(image_path, outlines):
+def detectHexagons(image_path, outlines, minArea, maxArea, distanceThreshold):
     # load original image in greyscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -99,22 +106,21 @@ def detectHexagons(image_path, outlines):
         # Check for hexagon: min 4 vertices, area threshold, and convexity
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
-            if area > 10 and area < 120: 
+            if area > minArea and area < maxArea: 
                 hexagons.append(approx)
                 cX, cY = findCentroids(contours = approx)
                 centroids.append(np.array([cX, cY]))
     
     # Check if any hexagons overlap. If so, remove the second one
     # Threshold is the min distance in pixels that centroids can be from each other before being considered "overlapping"
-    threshold = 3.5
-    filteredHexagons, filteredCentroids = removeDuplicateHexagons(hexagons, centroids, threshold)
+    filteredHexagons, filteredCentroids = removeDuplicateHexagons(hexagons, centroids, distanceThreshold)
 
     # Draw the hexagons on the original image, and display the number of hexagons found
     for c in filteredHexagons:
         cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
     for h in filteredCentroids:
-        cv2.circle(output, h, 0, (0, 255, 0), -1)
-    print(f"Detected {len(filteredHexagons)} hexagons.")
+        cv2.circle(output, h, 1, (0, 0, 255), -1)
+    print("Number of hexagons: ", len(filteredHexagons))
     showImage("Detected Hexagons", output)
 
     return filteredHexagons, filteredCentroids, output
@@ -175,18 +181,24 @@ def strainCalc(centroids):
     sizes = []
     for datapoint in centroids:
         sizes.append(np.linalg.norm(np.array(datapoint[0]) - np.array(datapoint[1])))
-        print(datapoint)
-    print("number of lines: ", len(sizes))
     averageSize = sum(sizes)/len(sizes)
-    print(averageSize)
+
+    print("Average size: ", averageSize)
     return averageSize
 
 if __name__ == "__main__":
-
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
     imagePath = "vat4-processed.jpg"
+    predictedHexagonSize = 17 #nm
+    distanceThreshold = 7
+
+    minArea, maxArea = findThresholds(predictedHexagonSize)
+    print("min area: ", minArea)
+    print("max Area: ", maxArea)
+
     outline = preProcessing(imagePath)
-    hexagons, centroids, output = detectHexagons(imagePath, outline)
+    hexagons, centroids, output = detectHexagons(imagePath, outline, minArea, maxArea, distanceThreshold)
 
     temp = nearestNeighbours(centroids, output) 
-    removeDuplicateNeighbours(temp)
+    data = removeDuplicateNeighbours(temp)
+    strainCalc(data)
