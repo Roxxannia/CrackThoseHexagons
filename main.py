@@ -129,7 +129,8 @@ def nearestNeighbours(centroid, k, image):
 
 # Example usage:
 if __name__ == "__main__":
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
+    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_medium.png"  # Replace with your image path
+    image_path = "hexagons_lightRoom.jpg"
     hexagons, centroids, output = detect_hexagons(image_path)
     nearestNeighbours(centroids, 6, output)
 
