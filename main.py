@@ -17,9 +17,10 @@ def conversion():
     return round(float(scale),3)
 
 def preProcessing (image_path):
-    return
+    #   TODO
+    #   - Find the size of the scale bar in pixels
+    #   - Process the image to edit the contrast
 
-def detect_hexagons(image_path, show_result=True):
     # Load image in grayscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
@@ -29,51 +30,59 @@ def detect_hexagons(image_path, show_result=True):
     blurred = cv2.GaussianBlur(img, (5,5), 0)
     showImage("Blurred Image", blurred)
 
-    #Threshold image to b&w
+    return blurred
+
+# Takes in the pre-processed blurred image from pre-processing
+# Returns a list of coordinates of every polygon vertex and center
+def detect_hexagons(image_path, blurred, show_result=True):
+    # load original image in greyscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+    # Threshold image to b&w
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
-    showImage("th3", th3)
-    #Edge detection
+    
+    # Edge detection
     edges = cv2.Canny(th3, 25,45)
     showImage("Edge Image", edges)
 
-    #thicken edge lines
+    # thicken edge lines
     kernel = np.ones((2,2),np.uint8)
     dilation = cv2.dilate(edges,kernel,iterations = 1)
     showImage("Dilated Edges", dilation)
 
     # Find contours
     contours, _ = cv2.findContours(dilation, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # print(contours[0])
 
     # Convert grayscale to BGR for visualization
     output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     
+    #Detect hexagons
     hexagons = []
     centroids = []
-
-    for cnt in contours:
+    for contour in contours:
         # Approximate contour to polygon
-        epsilon = 0.04 * cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, epsilon, True)
+        epsilon = 0.04 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
 
         # Check for hexagon: min 4 vertices, area threshold, and convexity
         if len(approx) >= 4 and cv2.isContourConvex(approx):
             area = cv2.contourArea(approx)
             if area > 10 and area < 120: 
-                #---------New method------
                 hexagons.append(approx)
                 cX, cY = findCentroids(contours = approx)
                 centroids.append(np.array([cX, cY]))
     
-    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold = 3.5)
+    # Check if any hexagons overlap. If so, remove the second one
+    # Threshold is the min distance in pixels that centroids can be from each other before being considered "overlapping"
+    threshold = 3.5
+    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold)
+
     for c in filtered_hexagons:
         cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
 
     for h in filtered_centroids:
         cv2.circle(output, h, 0, (0, 255, 0), -1)
-
-    
 
     if show_result:
         print(f"Detected {len(filtered_hexagons)} hexagons.")
