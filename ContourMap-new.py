@@ -218,13 +218,13 @@ if __name__ == "__main__":
 
     # start_time = time.time()
 
-    #Roxxannia's image paths
-    #image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
+    # Roxxannia's image paths
+    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightroom.jpg"  
     # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_tiny.png"
     
-    #Sophie's image paths
+    # Sophie's image paths
     image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_tiny.png"
-    
+
     hexagons, centroids, output = detect_hexagons(image_path)
     scale = conversion()
 
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     
     # The distance returned above is just the last matrix euclidean distance matrix that was calculated for the last centroid
     # Can use this conversion to convert euclidean distance from pixels to nm 
-    print(np.array(distance)*scale)
+    # print(np.array(distance)*scale)
 
 
 

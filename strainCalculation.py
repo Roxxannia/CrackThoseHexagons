@@ -122,8 +122,6 @@ def remove_duplicate_hexagons(hexagons, centroids, threshold):
 
     return filtered_hexagons, filtered_centroids
 
-
-
 #k=6
 def nearestNeighbours(centroid, k, image):
     neighbours = {}
@@ -173,8 +171,7 @@ def nearestNeighbours(centroid, k, image):
 
     return neighbours, EuDistance, neighbours_temp
 
-
-
+#Creates a contour map based on how far apart the centroids are (not being used rn)
 def contourMap(output, centroids, neighbours):
     # Create blank with the dimension of the original image
     height, width = output.shape[:2]
@@ -227,13 +224,24 @@ def elapsedTime(start_time):
     elapsed_time = end_time - start_time
     print(elapsed_time)
 
+#Calculate average size of hexagons and strain relief 
+def strainCalc(centroids):
+    sizes = []
+    for datapoint in centroids:
+        sizes.append(np.linalg.norm(np.array(datapoint[0]) - np.array(datapoint[1])))
+        print(datapoint)
+    print("number of lines: ", len(sizes))
+    averageSize = sum(sizes)/len(sizes)
+    print(averageSize)
+    return averageSize
+
 # Example usage:
 if __name__ == "__main__":
 
     # start_time = time.time()
-# 
-    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    # image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_tiny.png"
+
+    # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
+    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/vat3_hexagons.jpg"
     hexagons, centroids, output = detect_hexagons(image_path)
 
     # scale = conversion()
@@ -277,11 +285,12 @@ if __name__ == "__main__":
         cv2.line(output, filtered_data[i][0], filtered_data[i][1], (255, 100, 0), 1)
 
     showImage("New Nearest Neighbors", output)
+    strainCalc(filtered_data)
 
     print(len(temp))
     print(len(filtered_data))
+    # print("filtered data: \n", filtered_data)
 
-  
 
     
     # The distance returned above is just the last matrix euclidean distance matrix that was calculated for the last centroid
