@@ -30,14 +30,6 @@ def preProcessing (image_path):
     blurred = cv2.GaussianBlur(img, (5,5), 0)
     showImage("Blurred Image", blurred)
 
-    return blurred
-
-# Takes in the pre-processed blurred image from pre-processing
-# Returns a list of coordinates of every polygon vertex and center
-def detect_hexagons(image_path, blurred, show_result=True):
-    # load original image in greyscale
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
     # Threshold image to b&w
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
@@ -51,8 +43,16 @@ def detect_hexagons(image_path, blurred, show_result=True):
     dilation = cv2.dilate(edges,kernel,iterations = 1)
     showImage("Dilated Edges", dilation)
 
+    return dilation
+
+# Takes in the pre-processed b&w outlined image from pre-processing
+# Returns a list of coordinates of every polygon vertex and center
+def detect_hexagons(image_path, outlines, show_result=True):
+    # load original image in greyscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
     # Find contours
-    contours, _ = cv2.findContours(dilation, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(outlines, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     # Convert grayscale to BGR for visualization
     output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
