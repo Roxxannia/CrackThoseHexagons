@@ -35,7 +35,7 @@ def detect_hexagons(image_path, show_result=True):
     #Threshold image to b&w
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv2.THRESH_BINARY_INV,19,5)
-
+    showImage("th3", th3)
 
     #Edge detection
     edges = cv2.Canny(th3, 25,45)
