@@ -225,7 +225,7 @@ if __name__ == "__main__":
     # start_time = time.time()
 
     # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_lightRoom1.jpg"
+    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/vat3-processed.jpg"
     outline = preProcessing(image_path)
     hexagons, centroids, output = detectHexagons(image_path, outline)
 
