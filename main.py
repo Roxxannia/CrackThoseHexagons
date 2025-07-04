@@ -73,7 +73,7 @@ def findCentroids(contours):
     return cX, cY
 
 # Removes the hexagons that overlap
-def remove_duplicate_hexagons(hexagons, centroids, threshold):
+def removeDuplicateHexagons(hexagons, centroids, threshold):
     # Create a matrix of boolean value that's the same size as centroids
     n = len(centroids)
     keep = [True] * n
@@ -89,13 +89,13 @@ def remove_duplicate_hexagons(hexagons, centroids, threshold):
                 keep[j] = False  
 
     # Filter out the hexagons and centroids with the keep matrix
-    filtered_hexagons = [hexagons[i] for i in range(n) if keep[i]]
-    filtered_centroids = [centroids[i] for i in range(n) if keep[i]]
+    filteredHexagons = [hexagons[i] for i in range(n) if keep[i]]
+    filteredCentroids = [centroids[i] for i in range(n) if keep[i]]
 
-    return filtered_hexagons, filtered_centroids
+    return filteredHexagons, filteredCentroids
 
 # Takes in the pre-processed b&w outlined image from pre-processing // Returns a list of coordinates of every polygon vertex and center
-def detect_hexagons(image_path, outlines, show_result=True):
+def detectHexagons(image_path, outlines):
     # load original image in greyscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -124,27 +124,56 @@ def detect_hexagons(image_path, outlines, show_result=True):
     # Check if any hexagons overlap. If so, remove the second one
     # Threshold is the min distance in pixels that centroids can be from each other before being considered "overlapping"
     threshold = 3.5
-    filtered_hexagons, filtered_centroids = remove_duplicate_hexagons(hexagons, centroids, threshold)
+    filteredHexagons, filteredCentroids = removeDuplicateHexagons(hexagons, centroids, threshold)
 
     # Draw the hexagons on the original image, and display the number of hexagons found
-    if show_result:
-        drawHexagons(output, filtered_hexagons, filtered_centroids)
+    for c in filteredHexagons:
+        cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
+    for h in filteredCentroids:
+        cv2.circle(output, h, 0, (0, 255, 0), -1)
+    print(f"Detected {len(filteredHexagons)} hexagons.")
+    showImage("Detected Hexagons", output)
 
-    return filtered_hexagons, filtered_centroids, output
+    return filteredHexagons, filteredCentroids, output
+
+# Remove the duplicated lines from the nearest neighbour list
+def filterNearestNeighbours(temp):
+    x = 0
+    keep = [True] * len(temp)
+    for i in range(len(temp)):
+        for h in range(i, len(temp)):
+            if i != h \
+            and (temp[i][0][0] == temp[h][1][0]) \
+            and (temp[i][0][1] == temp[h][1][1]) \
+            and (temp[i][1][0] == temp[h][0][0]) \
+            and (temp[i][1][1] == temp[h][0][1]):
+                keep[i] =False
+
+    filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
+
+
+    for i in range(len(filtered_data)):
+        cv2.line(output, filtered_data[i][0], filtered_data[i][1], (255, 100, 0), 1)
+
+    showImage("New Nearest Neighbors", output)
+    strainCalc(filtered_data)
+
+    print(len(temp))
+    print(len(filtered_data))
+    return
 
 def nearestNeighbours(centroid, k, image):
-    # neighbours = []  #List of the 
-    startPoint_endPoint_list = []
-
+    neighbours = {}
+    neighbours_temp = {}
+    x = 0
     for index, c in enumerate(centroid):
         # Calculate euclidean distances between each centroid and all other centroids
         EuDistance = [np.linalg.norm(np.array(x) - np.array(c)) for x in centroid]
-
         # Exclude the centroid itself from the nearest distance
         EuDistance[index] = float('inf')  # exclude self
 
         # Sort data points by distance (smallest to largest) and get first K numbers of nearest neighbors
-        # N_distance a list of indices of the closest points
+        # N_distance is just a group of indices of the closest points
         N_distance = np.argsort(EuDistance, kind='stable')[:k]  
 
         kNN_temp = [EuDistance[n] for n in N_distance]
@@ -163,21 +192,23 @@ def nearestNeighbours(centroid, k, image):
             # EuDistance[dist] < np.sqrt(15**2+15**2) and
             if EuDistance[dist] <= avg or standardDev <= 2:
                 nearest.append(dist)
-                startPoint_endPoint_list.append([centroid[index],centroid[dist]])
+                neighbours_temp[x] = ([centroid[index],centroid[dist]])
+                x += 1
 
+ 
         kNN = [centroid[i] for i in nearest]
 
-        # neighbours.append(kNN)
+        neighbours[index] = kNN
 
-    # for i in range(len(centroid)):
-    #     for n in neighbours[i]:
-    #         cv2.line(image, centroid[i], n, (255, 0, 0), 1)
+    for i in range(len(centroid)):
+        for n in neighbours[i]:
+            cv2.line(image, centroid[i], n, (255, 0, 0), 1)
 
-    # showImage("Nearest Neighbors", image)
+    showImage("Nearest Neighbors", image)
     # If you want to save the image, uncomment this line
     # cv2.imwrite('Nearest_neigh.png',image)
 
-    return EuDistance, startPoint_endPoint_list #, neighbours
+    return neighbours, EuDistance, neighbours_temp
 
 def strainCalc(centroids):
     sizes = []
@@ -196,50 +227,11 @@ if __name__ == "__main__":
     # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
     image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_lightRoom1.jpg"
     outline = preProcessing(image_path)
-    hexagons, centroids, output = detect_hexagons(image_path, outline)
+    hexagons, centroids, output = detectHexagons(image_path, outline)
 
     # scale = conversion()
 
-    # Obtain the neighbours
-    distance, temp = nearestNeighbours(centroids, 6, output) 
-    # print(temp[0][0][0])
-    # print(temp[0][1])
-
-    # i = 0
-    # for i in range(len(temp)):
-    #     for h in range(len(temp)):
-    #         if np.array_equal(temp[i][0],temp [h][1]) and np.array_equal(temp[i][1],temp[h][0]):
-    #         # if temp[i].all() == temp [h][1] and temp[i][1] == temp[h][0]:
-    #             temp.pop(h)
-
-    # new_temp = {}
-    # new_temp = []
-    x = 0
-    keep = [True] * len(temp)
-    # int(len(temp)/2)
-    for i in range(len(temp)):
-        # for h in range(len(temp)-1,int(len(temp)/2), -1):
-        for h in range(i, len(temp)):
-            # if i != h and np.array_equal(temp[i][0], temp[h][1]) and np.array_equal(temp[i][1], temp[h][0]):
-            if i != h and (temp[i][0][0] == temp[h][1][0]) and (temp[i][0][1] == temp[h][1][1]) and (temp[i][1][0] == temp[h][0][0]) and (temp[i][1][1] == temp[h][0][1]):
-                keep[i] =False
-                # break
-        # if not duplicate_found:
-        #     # new_temp.append(temp[i])
-        #     new_temp[x] = temp[i]
-        #     x += 1
-    filtered_data = [temp[i] for i in range(len(temp)) if keep[i]]
-    # print(keep)
-    # print(len(filtered_data))
-    # for data in filtered_data:
-    #     print(data)
-    #     print("\n")
-
-    for i in range(len(filtered_data)):
-        cv2.line(output, filtered_data[i][0], filtered_data[i][1], (255, 100, 0), 1)
-
-    showImage("New Nearest Neighbors", output)
-    strainCalc(filtered_data)
-
-    print(len(temp))
-    print(len(filtered_data))
+    neighbours, distance, temp = nearestNeighbours(centroids, 6, output) 
+    filterNearestNeighbours(temp)
+    
+    # print("filtered data: \n", filtered_data)
