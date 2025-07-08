@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
     # Min distance for the centroids
     # This value could be calculated by the program based on hexagon size
-    distanceThreshold = 7
+    distanceThreshold = 9
 
     # an ODD int for Gaussian blur. Higher = more blur. (typically around 5 - 11)
     blurInt = 11
