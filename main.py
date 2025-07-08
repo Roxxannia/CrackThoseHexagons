@@ -182,14 +182,19 @@ def strainCalc(centroids):
     for datapoint in centroids:
         sizes.append(np.linalg.norm(np.array(datapoint[0]) - np.array(datapoint[1])))
     averageSize = sum(sizes)/len(sizes)
-
+    sizeDeviation = np.std(sizes)
     print("Average size: ", averageSize)
+    print("Standard deviation", sizeDeviation)
     return averageSize
 
 if __name__ == "__main__":
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "vat4-processed.jpg"
+    imagePath = "vat3-processed.jpg"
+
+    # Estimated by hand
     predictedHexagonSize = 17 #nm
+
+    # Min distance for the centroids
     distanceThreshold = 7
 
     minArea, maxArea = findThresholds(predictedHexagonSize)
