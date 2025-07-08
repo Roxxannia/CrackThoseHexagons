@@ -193,6 +193,10 @@ if __name__ == "__main__":
     # Estimated by hand
     predictedHexagonSize = 16 #nm
 
+    minArea, maxArea = findThresholds(predictedHexagonSize)
+    # print("min area: ", minArea)
+    # print("max Area: ", maxArea)
+
     # Min distance for the centroids
     # This value could be calculated by the program based on hexagon size
     distanceThreshold = 7
@@ -201,10 +205,6 @@ if __name__ == "__main__":
     blurInt = 11
     if blurInt % 2 == 0:
         raise ValueError("blurInt must be odd!")
-
-    minArea, maxArea = findThresholds(predictedHexagonSize)
-    # print("min area: ", minArea)
-    # print("max Area: ", maxArea)
 
     outline, blurredImage = preProcessing(imagePath, blurInt)
 
