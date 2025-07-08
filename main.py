@@ -18,7 +18,7 @@ def findThresholds(hexSize_nm):
     minArea = int(0.1 * avgArea)
     return minArea, maxArea
 
-def preProcessing (image_path):
+def preProcessing (image_path, blurInt):
     #   TODO
     #   - Find the size of the scale bar in pixels
     #   - Process the image to edit the contrast
@@ -29,7 +29,7 @@ def preProcessing (image_path):
         raise ValueError("Image not found or path is incorrect.")
 
     # Blur to reduce noise
-    blurred = cv2.GaussianBlur(img, (11,11), 0)
+    blurred = cv2.GaussianBlur(img, (blurInt,blurInt), 0)
     showImage("Blurred Image", blurred)
 
     # Threshold image to b&w
@@ -45,7 +45,7 @@ def preProcessing (image_path):
     dilation = cv2.dilate(edges,kernel,iterations = 1)
     showImage("Dilated Edges", dilation)
 
-    return dilation
+    return dilation, blurred
 
 # Takes in a list of the vertices of each polygon, returns a list of center coordinates of each polygon
 def findCentroids(contours):
@@ -85,7 +85,7 @@ def removeDuplicateHexagons(hexagons, centroids, threshold):
     return filteredHexagons, filteredCentroids
 
 # Takes in the pre-processed b&w outlined image from pre-processing // Returns a list of coordinates of every polygon vertex and center
-def detectHexagons(image_path, outlines, minArea, maxArea, distanceThreshold):
+def detectHexagons(image_path, blurredImage, outlines, minArea, maxArea, distanceThreshold):
     # load original image in greyscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -93,7 +93,7 @@ def detectHexagons(image_path, outlines, minArea, maxArea, distanceThreshold):
     contours, _ = cv2.findContours(outlines, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     # Convert grayscale to RGB for visualization
-    output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    blurredImage = cv2.cvtColor(blurredImage, cv2.COLOR_GRAY2BGR)
     
     #Detect hexagons
     hexagons = []
@@ -117,13 +117,13 @@ def detectHexagons(image_path, outlines, minArea, maxArea, distanceThreshold):
 
     # Draw the hexagons on the original image, and display the number of hexagons found
     for c in filteredHexagons:
-        cv2.drawContours(output, [c], -1, (0, 255, 0), 1)
+        cv2.drawContours(blurredImage, [c], -1, (0, 255, 0), 1)
     for h in filteredCentroids:
-        cv2.circle(output, h, 1, (0, 0, 255), -1)
+        cv2.circle(blurredImage, h, 1, (0, 0, 255), -1)
     print("Number of hexagons: ", len(filteredHexagons))
-    showImage("Detected Hexagons", output)
+    showImage("Detected Hexagons", blurredImage)
 
-    return filteredHexagons, filteredCentroids, output
+    return filteredHexagons, filteredCentroids, blurredImage
 
 # Remove the duplicated lines from the nearest neighbour list
 def removeDuplicateNeighbours(temp):
@@ -188,7 +188,7 @@ def strainCalc(centroids):
 
 if __name__ == "__main__":
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "vat4-processed.jpg"
+    imagePath = "manually processed/vat3-processed.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
@@ -197,13 +197,21 @@ if __name__ == "__main__":
     # This value could be calculated by the program based on hexagon size
     distanceThreshold = 7
 
-    minArea, maxArea = findThresholds(predictedHexagonSize)
-    print("min area: ", minArea)
-    print("max Area: ", maxArea)
+    # an ODD int for Gaussian blur. Higher = more blur. (typically around 5 - 11)
+    blurInt = 11
+    if blurInt % 2 == 0:
+        raise ValueError("blurInt must be odd!")
 
-    outline = preProcessing(imagePath)
-    hexagons, centroids, output = detectHexagons(imagePath, outline, minArea, maxArea, distanceThreshold)
+    minArea, maxArea = findThresholds(predictedHexagonSize)
+    # print("min area: ", minArea)
+    # print("max Area: ", maxArea)
+
+    outline, blurredImage = preProcessing(imagePath, blurInt)
+
+    hexagons, centroids, output = detectHexagons(imagePath, blurredImage, outline, minArea, maxArea, distanceThreshold)
 
     temp = nearestNeighbours(centroids) 
     data = removeDuplicateNeighbours(temp)
     strainCalc(data)
+
+    
