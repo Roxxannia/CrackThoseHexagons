@@ -145,6 +145,7 @@ def removeDuplicateNeighbours(temp):
 
     return filteredNeighbours
 
+#This threshold value might be something we need to change depending on the sample/hexagon size
 def nearestNeighbours(centroid, threshold = 2):
     #dictionary of startpoint (centroid) and endpoint (vertex) of each neighbour
     startPointEndPoint_list = {} 
@@ -187,12 +188,13 @@ def strainCalc(centroids):
 
 if __name__ == "__main__":
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "vat2-processed.jpg"
+    imagePath = "vat4-processed.jpg"
 
     # Estimated by hand
-    predictedHexagonSize = 21 #nm
+    predictedHexagonSize = 16 #nm
 
     # Min distance for the centroids
+    # This value could be calculated by the program based on hexagon size
     distanceThreshold = 7
 
     minArea, maxArea = findThresholds(predictedHexagonSize)
