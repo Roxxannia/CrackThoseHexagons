@@ -188,7 +188,7 @@ def strainCalc(centroids):
 
 if __name__ == "__main__":
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "manually processed/vat3-processed.jpg"
+    imagePath = "vat3-processed.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
