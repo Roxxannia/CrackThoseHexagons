@@ -145,9 +145,7 @@ def removeDuplicateNeighbours(temp):
 
     return filteredNeighbours
 
-def nearestNeighbours(centroid, image, threshold = 2):
-    neighbours = {}
-
+def nearestNeighbours(centroid, threshold = 2):
     #dictionary of startpoint (centroid) and endpoint (vertex) of each neighbour
     startPointEndPoint_list = {} 
     x = 0
@@ -189,7 +187,7 @@ def strainCalc(centroids):
 
 if __name__ == "__main__":
     #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "vat3-processed.jpg"
+    imagePath = "vat2-processed.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 17 #nm
@@ -204,6 +202,6 @@ if __name__ == "__main__":
     outline = preProcessing(imagePath)
     hexagons, centroids, output = detectHexagons(imagePath, outline, minArea, maxArea, distanceThreshold)
 
-    temp = nearestNeighbours(centroids, output) 
+    temp = nearestNeighbours(centroids) 
     data = removeDuplicateNeighbours(temp)
     strainCalc(data)
