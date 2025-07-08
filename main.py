@@ -29,7 +29,7 @@ def preProcessing (image_path):
         raise ValueError("Image not found or path is incorrect.")
 
     # Blur to reduce noise
-    blurred = cv2.GaussianBlur(img, (5,5), 0)
+    blurred = cv2.GaussianBlur(img, (11,11), 0)
     showImage("Blurred Image", blurred)
 
     # Threshold image to b&w
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     imagePath = "vat2-processed.jpg"
 
     # Estimated by hand
-    predictedHexagonSize = 17 #nm
+    predictedHexagonSize = 21 #nm
 
     # Min distance for the centroids
     distanceThreshold = 7
