@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
     # Min distance for the centroids
     # This value could be calculated by the program based on hexagon size
-    distanceThreshold = 9
+    distanceThreshold = 7
 
     # an ODD int for Gaussian blur. Higher = more blur. (typically around 5 - 11)
     blurInt = 11
@@ -210,8 +210,13 @@ if __name__ == "__main__":
 
     hexagons, centroids, output = detectHexagons(imagePath, blurredImage, outline, minArea, maxArea, distanceThreshold)
 
-    temp = nearestNeighbours(centroids) 
-    data = removeDuplicateNeighbours(temp)
+    # a list of the start and end point coordinates of every nearest neighbour line
+    startPointEndPoint_list = nearestNeighbours(centroids) 
+
+    # Removes duplicate nearest neighbour lines
+    data = removeDuplicateNeighbours(startPointEndPoint_list)
+
+    # calculate the average size, and standard deviation of the size
     strainCalc(data)
 
     
