@@ -17,7 +17,7 @@ def conversion():
     # Scale bar = 166 pixels
     # about 1.205 nm/pixel
 
-    scale = 200/166
+    scale = 200/167
 
     return round(float(scale),3)
 
@@ -241,7 +241,8 @@ if __name__ == "__main__":
     # start_time = time.time()
 
     # image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_lightRoom.jpg"
+    # image_path = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/hexagons_lightRoom.jpg"
+    image_path = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/1x/vat4-processed.jpg"
     hexagons, centroids, output = detect_hexagons(image_path)
 
     # scale = conversion()
@@ -287,8 +288,8 @@ if __name__ == "__main__":
     showImage("New Nearest Neighbors", output)
     strainCalc(filtered_data)
 
-    print(len(temp))
-    print(len(filtered_data))
+    # print(len(temp))
+    # print(len(filtered_data))
     # print("filtered data: \n", filtered_data)
 
 
