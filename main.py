@@ -23,13 +23,28 @@ def preProcessing (image_path, blurInt):
     #   - Find the size of the scale bar in pixels
     #   - Process the image to edit the contrast
 
+    # 07/13 Roxxannia edit
+    # For now, the image needs to be processed (i.e. adjusted in lightroom) before loading in
+    # The image does not need to be cropped
+
     # Load image in grayscale
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise ValueError("Image not found or path is incorrect.")
+    
+    # Resizing image# Define new width and height
+    new_width = 710
+    new_height = 510
+    
+    # Resize the image
+    img = cv2.resize(img, (new_width, new_height))
+
+    # Cropping image
+    cropped_height = 474
+    cropped_image = img[0:cropped_height, 0:new_width]
 
     # Blur to reduce noise
-    blurred = cv2.GaussianBlur(img, (blurInt,blurInt), 0)
+    blurred = cv2.GaussianBlur(cropped_image, (blurInt,blurInt), 0)
     showImage("Blurred Image", blurred)
 
     # Threshold image to b&w
@@ -186,9 +201,46 @@ def strainCalc(centroids):
     print("Standard deviation", sizeDeviation)
     return averageSize
 
+def discolationCalc(img, centroids, lines, squareSize=30, step=15):
+    # For colour image, its a tuple
+    h, w, _ = img.shape
+    # For grayscale, its just a 2D array
+    # h, w = im_gray.shape
+
+    
+    # Drawing a "30 x 30 square"
+    for y in range(0, h + 1, step):
+        border = False
+    for x in range(0, w + 1, step):
+        
+        x0, y0 = x, y
+        x1, y1 = x + squareSize, y + squareSize
+        if x1>= w: 
+            x1 = w
+            border = True
+            
+        if y1 >= h:
+            y1 = h
+
+            
+        area = (x1-x0) * (y1-y0)
+        
+        if border == True:
+            break
+
+    # densities = np.array(densities)
+    # avgDensity = np.mean(densities)
+    # stdDensity = np.std(densities)
+
+    # return densities, avgDensity, stddensity
+
+    return True
+
 if __name__ == "__main__":
-    #imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/hexagons_lightRoom.jpg"  
-    imagePath = "manually processed/vat3-processed.jpg"
+    # Roxxannia's path
+    imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.png"
+    # Sophie's path  
+    # imagePath = "manually processed/vat3-processed.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
@@ -210,8 +262,8 @@ if __name__ == "__main__":
 
     hexagons, centroids, output = detectHexagons(imagePath, blurredImage, outline, minArea, maxArea, distanceThreshold)
 
-    temp = nearestNeighbours(centroids) 
-    data = removeDuplicateNeighbours(temp)
+    startPointEndPoint = nearestNeighbours(centroids) 
+    data = removeDuplicateNeighbours(startPointEndPoint)
     strainCalc(data)
 
     
