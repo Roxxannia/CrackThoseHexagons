@@ -257,7 +257,7 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
             dislocations = 6 * numCentroids - numLines
             
             # Dislocation density calculation
-            area = (x1-x0) * (y1-y0)
+            area = (x1-x0)*conversion() * (y1-y0) * conversion()
             density = dislocations / area
             densities.append(density)
 
@@ -266,7 +266,7 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
     avgDensity = np.mean(densities)
     stdDensity = np.std(densities)
 
-    print("Average Density: ", avgDensity)
+    print("Average Density: ", avgDensity, " dislocations/nm^2")
     print("Standard Deviation of Density: ", stdDensity)
 
     return densities, avgDensity, stdDensity
@@ -315,7 +315,7 @@ if __name__ == "__main__":
     # Roxxannia's Note 07/13
     # I am kinda unsure if this calculation is right oop
     # Result for VAT4
-    # Average Density:  0.021328222842240764
-    # Standard Deviation of Density:  0.008286199919571724
+    # Average Density:  0.014860760450946883
+    # Standard Deviation of Density:  0.0057735345773644205
     
     
