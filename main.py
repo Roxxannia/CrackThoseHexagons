@@ -300,5 +300,8 @@ if __name__ == "__main__":
     # How much the square slides every iteration
     step = 15
     densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, step)
-    print (densities)
+
+    # Roxxannia's Note 07/13
+    # I am kinda unsure if this calculation is right oop
+    
     
