@@ -202,6 +202,16 @@ def strainCalc(centroids):
     return averageSize
 
 def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
+    # 07/14 Roxxannia's Edit
+    # Dislocation Calculation logistics
+    # - create a square that's 30x30 (to start with), and move by 15px every time (both horizontally and vertically)
+    # - when creating the square, make sure theres no overhang
+    # - count number of centroids in the square, and the number of lines (that has a start point and an end point)
+    # - 6*number of centroid - number of lines --> this is the dislocation within the square 
+    # - then we can find the dislocation density by (# of dislocations /area of the square) --> save this number 
+    # - average the dislocation density after iterating through all the squares
+    # - calculate the standard deviation --> how uniform the sample surface is
+
     # For colour image, its a tuple
     h, w, _ = img.shape
     
@@ -217,6 +227,8 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
             
             x0, y0 = x, y
             x1, y1 = x + squareSize, y + squareSize
+
+            # Check if the square is overhanging
             if x1>= w: 
                 x1 = w
                 border = True
@@ -224,15 +236,16 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
             if y1 >= h:
                 y1 = h
 
+            # If the square has reached the border, then start the next row of iteration
             if border == True:
                 break
 
-            # Centroids inside square
+            # Finding centroids inside square
             centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
             numCentroids = len(centroidsInSquare)
             
             
-            # Lines that start or end in square
+            # Finding lines that start or end in square
             linesInSquare = [line for line in lines if 
                             (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
                             (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
@@ -240,18 +253,15 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
             numLines = len(linesInSquare)
             
 
-            # Dislocation count
+            # Dislocation calculation
             dislocations = 6 * numCentroids - numLines
             
-            # Dislocation density
+            # Dislocation density calculation
             area = (x1-x0) * (y1-y0)
             density = dislocations / area
             densities.append(density)
 
         
-        
-        
-
     densities = np.array(densities)
     avgDensity = np.mean(densities)
     stdDensity = np.std(densities)
@@ -298,10 +308,14 @@ if __name__ == "__main__":
     # The size of the square that's used to check the centroids
     squareSize = 30
     # How much the square slides every iteration
-    step = 15
-    densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, step)
+    # Tested for 5 and 15, the values dont seem to change much
+    stepSize = 5
+    densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, stepSize)
 
     # Roxxannia's Note 07/13
     # I am kinda unsure if this calculation is right oop
+    # Result for VAT4
+    # Average Density:  0.021328222842240764
+    # Standard Deviation of Density:  0.008286199919571724
     
     
