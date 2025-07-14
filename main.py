@@ -201,9 +201,11 @@ def strainCalc(centroids):
     print("Standard deviation", sizeDeviation)
     return averageSize
 
-def discolationCalc(img, centroids, lines, squareSize=30, step=15):
+def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
     # For colour image, its a tuple
     h, w, _ = img.shape
+    
+    densities = []
     # For grayscale, its just a 2D array
     # h, w = im_gray.shape
 
@@ -211,34 +213,59 @@ def discolationCalc(img, centroids, lines, squareSize=30, step=15):
     # Drawing a "30 x 30 square"
     for y in range(0, h + 1, step):
         border = False
-    for x in range(0, w + 1, step):
-        
-        x0, y0 = x, y
-        x1, y1 = x + squareSize, y + squareSize
-        if x1>= w: 
-            x1 = w
-            border = True
+        for x in range(0, w + 1, step):
             
-        if y1 >= h:
-            y1 = h
+            x0, y0 = x, y
+            x1, y1 = x + squareSize, y + squareSize
+            if x1>= w: 
+                x1 = w
+                border = True
+                
+            if y1 >= h:
+                y1 = h
 
+            if border == True:
+                break
+
+            # Centroids inside square
+            centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
+            numCentroids = len(centroidsInSquare)
             
-        area = (x1-x0) * (y1-y0)
+            
+            # Lines that start or end in square
+            linesInSquare = [line for line in lines if 
+                            (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
+                            (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
+            
+            numLines = len(linesInSquare)
+            
+
+            # Dislocation count
+            dislocations = 6 * numCentroids - numLines
+            
+            # Dislocation density
+            area = (x1-x0) * (y1-y0)
+            density = dislocations / area
+            densities.append(density)
+
         
-        if border == True:
-            break
+        
+        
 
-    # densities = np.array(densities)
-    # avgDensity = np.mean(densities)
-    # stdDensity = np.std(densities)
+    densities = np.array(densities)
+    avgDensity = np.mean(densities)
+    stdDensity = np.std(densities)
 
-    # return densities, avgDensity, stddensity
+    print("Average Density: ", avgDensity)
+    print("Standard Deviation of Density: ", stdDensity)
 
-    return True
+    return densities, avgDensity, stdDensity
+
+    # return True
 
 if __name__ == "__main__":
     # Roxxannia's path
-    imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.png"
+    imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
     # imagePath = "manually processed/vat3-processed.jpg"
 
@@ -263,7 +290,15 @@ if __name__ == "__main__":
     hexagons, centroids, output = detectHexagons(imagePath, blurredImage, outline, minArea, maxArea, distanceThreshold)
 
     startPointEndPoint = nearestNeighbours(centroids) 
-    data = removeDuplicateNeighbours(startPointEndPoint)
-    strainCalc(data)
+    startPointEndPoint_clean = removeDuplicateNeighbours(startPointEndPoint)
 
+    strainCalc(startPointEndPoint_clean)
+
+
+    # The size of the square that's used to check the centroids
+    squareSize = 30
+    # How much the square slides every iteration
+    step = 15
+    densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, step)
+    print (densities)
     
