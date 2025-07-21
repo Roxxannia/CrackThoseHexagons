@@ -32,7 +32,8 @@ def preProcessing (image_path, blurInt):
     if img is None:
         raise ValueError("Image not found or path is incorrect.")
     
-    # Resizing image# Define new width and height
+    # Resizing image
+    # Define new width and height
     new_width = 710
     new_height = 510
     
