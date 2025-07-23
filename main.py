@@ -268,7 +268,7 @@ def dislocationCalc(img, centroids, lines, squareSize, step):
     densities = np.array(densities)
     avgDensity = np.mean(densities) * 710*conversion() * 474*conversion()
     stdDensity = np.std(densities) * 710*conversion() * 474*conversion()
-    print(densities)
+    #print(densities)
     print("Average Density: ", avgDensity, " dislocations/nm2")
     print("Standard Deviation of Density: ", stdDensity)
 
@@ -280,8 +280,9 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/vat4/S4_007.jpg"
-
+    imagePath = "to_use/vat4/S4_009.jpg"
+    # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
+    
     # Estimated by hand
     predictedHexagonSize = 16 #nm
 
