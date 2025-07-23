@@ -158,7 +158,7 @@ def removeDuplicateNeighbours(temp):
     for i in range(len(filteredNeighbours)):
         cv2.line(output, filteredNeighbours[i][0], filteredNeighbours[i][1], (255, 100, 0), 1)
     showImage("New Nearest Neighbors", output)
-
+    print("Number of lines: ", len(filteredNeighbours))
     return filteredNeighbours
 
 #This threshold value might be something we need to change depending on the sample/hexagon size
@@ -202,7 +202,7 @@ def strainCalc(centroids):
     print("Standard deviation", sizeDeviation)
     return averageSize
 
-def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
+def dislocationCalc(img, centroids, lines, squareSize, step):
     # 07/14 Roxxannia's Edit
     # Dislocation Calculation logistics
     # - create a square that's 30x30 (to start with), and move by 15px every time (both horizontally and vertically)
@@ -259,15 +259,15 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
             
             # Dislocation density calculation
             area = (x1-x0)*conversion() * (y1-y0) * conversion()
-            density = dislocations / area
+            density = (dislocations / area)  #density in /nm^2
             densities.append(density)
 
         
     densities = np.array(densities)
-    avgDensity = np.mean(densities)
-    stdDensity = np.std(densities)
-
-    print("Average Density: ", avgDensity, " dislocations/nm^2")
+    avgDensity = np.mean(densities) * 800 * 500
+    stdDensity = np.std(densities) * 800 * 500
+    print(densities)
+    print("Average Density: ", avgDensity, " dislocations/nm2")
     print("Standard Deviation of Density: ", stdDensity)
 
     return densities, avgDensity, stdDensity
@@ -276,9 +276,9 @@ def dislocationCalc(img, centroids, lines, squareSize=30, step=15):
 
 if __name__ == "__main__":
     # Roxxannia's path
-    imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
+    # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    # imagePath = "manually processed/vat3-processed.jpg"
+    imagePath = "VAT4-TESTING.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
@@ -310,7 +310,7 @@ if __name__ == "__main__":
     squareSize = 30
     # How much the square slides every iteration
     # Tested for 5 and 15, the values dont seem to change much
-    stepSize = 5
+    stepSize = 15
     densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, stepSize)
 
     # Roxxannia's Note 07/13
