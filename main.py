@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/vat4/S4_006.jpg"
+    imagePath = "to_use/vat4/S4_007.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
