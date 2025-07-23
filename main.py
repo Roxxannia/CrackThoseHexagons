@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def showImage(name, image):
-    cv2.imshow(name, image)
-    cv2.waitKey(0)
+    #cv2.imshow(name, image)
+    cv2.imwrite(name, image)
+    #cv2.waitKey(0)
 
 # Convert pixels to nm with the scale bar. This could be automated in the future
 def conversion():
@@ -47,7 +48,7 @@ def preProcessing (image_path, blurInt):
 
     # Blur to reduce noise
     blurred = cv2.GaussianBlur(cropped_image, (blurInt,blurInt), 0)
-    showImage("Blurred Image", blurred)
+    showImage("BlurredImage.jpg", blurred)
 
     # Threshold image to b&w
     th3 = cv2.adaptiveThreshold(blurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
@@ -55,12 +56,12 @@ def preProcessing (image_path, blurInt):
     
     # Edge detection
     edges = cv2.Canny(th3, 25,45)
-    showImage("Edge Image", edges)
+    #showImage("Edge Image", edges)
 
     # thicken edge lines
     kernel = np.ones((2,2),np.uint8)
     dilation = cv2.dilate(edges,kernel,iterations = 1)
-    showImage("Dilated Edges", dilation)
+    #showImage("Dilated Edges", dilation)
 
     return dilation, blurred
 
@@ -138,7 +139,7 @@ def detectHexagons(image_path, blurredImage, outlines, minArea, maxArea, distanc
     for h in filteredCentroids:
         cv2.circle(blurredImage, h, 1, (0, 0, 255), -1)
     print("Number of hexagons: ", len(filteredHexagons))
-    showImage("Detected Hexagons", blurredImage)
+    showImage("DetectedHexagons.jpg", blurredImage)
 
     return filteredHexagons, filteredCentroids, blurredImage
 
@@ -158,7 +159,7 @@ def removeDuplicateNeighbours(temp):
 
     for i in range(len(filteredNeighbours)):
         cv2.line(output, filteredNeighbours[i][0], filteredNeighbours[i][1], (255, 100, 0), 1)
-    showImage("New Nearest Neighbors", output)
+    showImage("NearestNeighbors.jpg", output)
     print("Number of lines: ", len(filteredNeighbours))
     return filteredNeighbours
 
@@ -265,8 +266,8 @@ def dislocationCalc(img, centroids, lines, squareSize, step):
             densities.append(density)
 
     densities = np.array(densities)
-    avgDensity = np.mean(densities) * 800 * 500
-    stdDensity = np.std(densities) * 800 * 500
+    avgDensity = np.mean(densities) * 710*conversion() * 474*conversion()
+    stdDensity = np.std(densities) * 710*conversion() * 474*conversion()
     print(densities)
     print("Average Density: ", avgDensity, " dislocations/nm2")
     print("Standard Deviation of Density: ", stdDensity)
@@ -279,7 +280,7 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/VAT4-TESTING.jpg"
+    imagePath = "used_in_previous_push/VAT4-TESTING.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
