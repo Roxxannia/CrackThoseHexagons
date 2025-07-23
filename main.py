@@ -203,7 +203,7 @@ def strainCalc(centroids):
     print("Standard deviation", sizeDeviation)
     return averageSize
 
-def dislocationCalc(img, centroids, lines, squareSize, step_list):
+def dislocationCalc(img, centroids, lines, squareSize, step):
     # 07/14 Roxxannia's Edit
     # Dislocation Calculation logistics
     # - create a square that's 30x30 (to start with), and move by 15px every time (both horizontally and vertically)
@@ -220,69 +220,56 @@ def dislocationCalc(img, centroids, lines, squareSize, step_list):
     
     # For grayscale, its just a 2D array
     # h, w = im_gray.shape
-    avgDensity_list = []
-    standDev_list = []
-    for step in step_list:
-        densities = []
-        # Drawing a "30 x 30 square"
-        for y in range(0, h + 1, step):
-            border = False
-            for x in range(0, w + 1, step):
+
+    densities = []
+    # Drawing a "30 x 30 square"
+    for y in range(0, h + 1, step):
+        border = False
+        for x in range(0, w + 1, step):
+            
+            x0, y0 = x, y
+            x1, y1 = x + squareSize, y + squareSize
+
+            # Check if the square is overhanging
+            if x1>= w: 
+                x1 = w
+                border = True
                 
-                x0, y0 = x, y
-                x1, y1 = x + squareSize, y + squareSize
+            if y1 >= h:
+                y1 = h
+                border = True
 
-                # Check if the square is overhanging
-                if x1>= w: 
-                    x1 = w
-                    border = True
-                    
-                if y1 >= h:
-                    y1 = h
-                    border = True
+            # If the square has reached the border, then start the next row of iteration
+            if border == True:
+                break
 
-                # If the square has reached the border, then start the next row of iteration
-                if border == True:
-                    break
+            # Finding centroids inside square
+            centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
+            numCentroids = len(centroidsInSquare)
+            
+            
+            # Finding lines that start or end in square
+            linesInSquare = [line for line in lines if 
+                            (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
+                            (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
+            
+            numLines = len(linesInSquare)
+            
 
-                # Finding centroids inside square
-                centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
-                numCentroids = len(centroidsInSquare)
-                
-                
-                # Finding lines that start or end in square
-                linesInSquare = [line for line in lines if 
-                                (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
-                                (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
-                
-                numLines = len(linesInSquare)
-                
+            # Dislocation calculation
+            dislocations = 6 * numCentroids - numLines
+            
+            # Dislocation density calculation
+            area = (x1-x0)*conversion() * (y1-y0) * conversion()
+            density = (dislocations / area)  #density in /nm^2
+            densities.append(density)
 
-                # Dislocation calculation
-                dislocations = 6 * numCentroids - numLines
-                
-                # Dislocation density calculation
-                area = (x1-x0)*conversion() * (y1-y0) * conversion()
-                density = (dislocations / area)  #density in /nm^2
-                densities.append(density)
-
-        densities = np.array(densities)
-        avgDensity = np.mean(densities) * 800 * 500
-        stdDensity = np.std(densities) * 800 * 500
-
-        avgDensity_list.append(avgDensity)
-        standDev_list.append(stdDensity)
-
-    plt.plot(avgDensity_list)
-    plt.show()
-    plt.plot(standDev_list)
-    plt.show()
-    # densities = np.array(densities)
-    # avgDensity = np.mean(densities) * 800 * 500
-    # stdDensity = np.std(densities) * 800 * 500
-    # print(densities)
-    # print("Average Density: ", avgDensity, " dislocations/nm2")
-    # print("Standard Deviation of Density: ", stdDensity)
+    densities = np.array(densities)
+    avgDensity = np.mean(densities) * 800 * 500
+    stdDensity = np.std(densities) * 800 * 500
+    print(densities)
+    print("Average Density: ", avgDensity, " dislocations/nm2")
+    print("Standard Deviation of Density: ", stdDensity)
 
     return densities, avgDensity, stdDensity
 
@@ -321,16 +308,13 @@ if __name__ == "__main__":
 
 
     # The size of the square that's used to check the centroids
-    squareSize = 30
+    squareSize = 40
     # How much the square slides every iteration
     # Tested for 5 and 15, the values dont seem to change much
-    stepSize = [3,5,10,20,30]
+    stepSize = 10
     densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, stepSize)
 
     # Roxxannia's Note 07/13
-    # I am kinda unsure if this calculation is right oop
-    # Result for VAT4
-    # Average Density:  0.014860760450946883
-    # Standard Deviation of Density:  0.0057735345773644205
+
     
     
