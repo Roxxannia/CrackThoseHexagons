@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 def showImage(name, image):
     cv2.imshow(name, image)
@@ -202,7 +203,7 @@ def strainCalc(centroids):
     print("Standard deviation", sizeDeviation)
     return averageSize
 
-def dislocationCalc(img, centroids, lines, squareSize, step):
+def dislocationCalc(img, centroids, lines, squareSize, step_list):
     # 07/14 Roxxannia's Edit
     # Dislocation Calculation logistics
     # - create a square that's 30x30 (to start with), and move by 15px every time (both horizontally and vertically)
@@ -216,59 +217,72 @@ def dislocationCalc(img, centroids, lines, squareSize, step):
     # For colour image, its a tuple
     h, w, _ = img.shape
     
-    densities = []
+    
     # For grayscale, its just a 2D array
     # h, w = im_gray.shape
-
-    
-    # Drawing a "30 x 30 square"
-    for y in range(0, h + 1, step):
-        border = False
-        for x in range(0, w + 1, step):
-            
-            x0, y0 = x, y
-            x1, y1 = x + squareSize, y + squareSize
-
-            # Check if the square is overhanging
-            if x1>= w: 
-                x1 = w
-                border = True
+    avgDensity_list = []
+    standDev_list = []
+    for step in step_list:
+        densities = []
+        # Drawing a "30 x 30 square"
+        for y in range(0, h + 1, step):
+            border = False
+            for x in range(0, w + 1, step):
                 
-            if y1 >= h:
-                y1 = h
+                x0, y0 = x, y
+                x1, y1 = x + squareSize, y + squareSize
 
-            # If the square has reached the border, then start the next row of iteration
-            if border == True:
-                break
+                # Check if the square is overhanging
+                if x1>= w: 
+                    x1 = w
+                    border = True
+                    
+                if y1 >= h:
+                    y1 = h
+                    border = True
 
-            # Finding centroids inside square
-            centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
-            numCentroids = len(centroidsInSquare)
-            
-            
-            # Finding lines that start or end in square
-            linesInSquare = [line for line in lines if 
-                            (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
-                            (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
-            
-            numLines = len(linesInSquare)
-            
+                # If the square has reached the border, then start the next row of iteration
+                if border == True:
+                    break
 
-            # Dislocation calculation
-            dislocations = 6 * numCentroids - numLines
-            
-            # Dislocation density calculation
-            area = (x1-x0)*conversion() * (y1-y0) * conversion()
-            density = (dislocations / area)  #density in /nm^2
-            densities.append(density)
+                # Finding centroids inside square
+                centroidsInSquare = [cen for cen in centroids if x0 <= cen[0] < x1 and y0 <= cen[1] < y1]
+                numCentroids = len(centroidsInSquare)
+                
+                
+                # Finding lines that start or end in square
+                linesInSquare = [line for line in lines if 
+                                (x0 <= line[0][0] < x1 and y0 <= line[0][1] < y1) and
+                                (x0 <= line[1][0] < x1 and y0 <= line[1][1] < y1)]
+                
+                numLines = len(linesInSquare)
+                
 
-        
-    densities = np.array(densities)
-    avgDensity = np.mean(densities) * 800 * 500
-    stdDensity = np.std(densities) * 800 * 500
-    print(densities)
-    print("Average Density: ", avgDensity, " dislocations/nm2")
-    print("Standard Deviation of Density: ", stdDensity)
+                # Dislocation calculation
+                dislocations = 6 * numCentroids - numLines
+                
+                # Dislocation density calculation
+                area = (x1-x0)*conversion() * (y1-y0) * conversion()
+                density = (dislocations / area)  #density in /nm^2
+                densities.append(density)
+
+        densities = np.array(densities)
+        avgDensity = np.mean(densities) * 800 * 500
+        stdDensity = np.std(densities) * 800 * 500
+
+        avgDensity_list.append(avgDensity)
+        standDev_list.append(stdDensity)
+
+    plt.plot(avgDensity_list)
+    plt.show()
+    plt.plot(standDev_list)
+    plt.show()
+    # densities = np.array(densities)
+    # avgDensity = np.mean(densities) * 800 * 500
+    # stdDensity = np.std(densities) * 800 * 500
+    # print(densities)
+    # print("Average Density: ", avgDensity, " dislocations/nm2")
+    # print("Standard Deviation of Density: ", stdDensity)
 
     return densities, avgDensity, stdDensity
 
@@ -278,7 +292,7 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "VAT4-TESTING.jpg"
+    imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/VAT4-TESTING.jpg"
 
     # Estimated by hand
     predictedHexagonSize = 16 #nm
@@ -310,7 +324,7 @@ if __name__ == "__main__":
     squareSize = 30
     # How much the square slides every iteration
     # Tested for 5 and 15, the values dont seem to change much
-    stepSize = 15
+    stepSize = [3,5,10,20,30]
     densities, avgDensity, stdDensity = dislocationCalc(output, centroids, startPointEndPoint_clean, squareSize, stepSize)
 
     # Roxxannia's Note 07/13
