@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/Vat2/S2_008.jpg"
+    imagePath = "to_use/Vat2/S2_012.jpg"
     # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
     
     # Estimated by hand
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     distanceThreshold = 7
 
     # an ODD int for Gaussian blur. Higher = more blur. (typically around 5 - 11)
-    blurInt = 11
+    blurInt = 13
     if blurInt % 2 == 0:
         raise ValueError("blurInt must be odd!")
 
