@@ -280,11 +280,11 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/Vat2/S2_015.jpg"
+    imagePath = "to_use/Vat3/S3_006.jpg"
     # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
     
     # Estimated by hand
-    predictedHexagonSize = 16 #nm
+    predictedHexagonSize = 14 #nm
 
     minArea, maxArea = findThresholds(predictedHexagonSize)
     # print("min area: ", minArea)
