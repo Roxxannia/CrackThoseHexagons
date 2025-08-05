@@ -138,6 +138,7 @@ def detectHexagons(image_path, blurredImage, outlines, minArea, maxArea, distanc
         cv2.drawContours(blurredImage, [c], -1, (0, 255, 0), 1)
     for h in filteredCentroids:
         cv2.circle(blurredImage, h, 1, (0, 0, 255), -1)
+
     print("Number of hexagons: ", len(filteredHexagons))
     showImage("DetectedHexagons.jpg", blurredImage)
 
@@ -202,6 +203,8 @@ def strainCalc(centroids):
     sizeDeviation = np.std(sizes)
     print("Average size: ", averageSize)
     print("Standard deviation", sizeDeviation)
+
+    makeHistogram(sizes)
     return averageSize
 
 def dislocationCalc(img, centroids, lines, squareSize, step):
@@ -274,14 +277,31 @@ def dislocationCalc(img, centroids, lines, squareSize, step):
 
     return densities, avgDensity, stdDensity
 
-# makes a histogram of the average size of hexagons in one image
-def makeHistogram():
+    # return True
+# makes a histogram of the average size of hexagons in one
+def makeHistogram(sizeList):
+    print("Making histogram...")
+    bins = 40
+    # Generate histogram data
+    counts, bin_edges = np.histogram(sizeList, bins=40)
+    filename = "histogram_vat4.txt"
+    # Save data to text file
+    with open(filename, 'w') as f:
+        f.write("Bin Start\tBin End\tCount\n")
+        for i in range(len(counts)):
+            f.write(f"{bin_edges[i]:.2f}\t{bin_edges[i+1]:.2f}\t{counts[i]}\n")
+
+    print(f"Histogram data written to {filename}")
+    plt.hist(sizeList, bins, edgecolor='black')
+    plt.show()
+        
+    return 
 
 if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/Vat2/S2_015.jpg"
+    imagePath = "to_use/Vat4/S4_012.jpg"
     # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
     
     # Estimated by hand
