@@ -274,7 +274,8 @@ def dislocationCalc(img, centroids, lines, squareSize, step):
 
     return densities, avgDensity, stdDensity
 
-    # return True
+# makes a histogram of the average size of hexagons in one image
+def makeHistogram():
 
 if __name__ == "__main__":
     # Roxxannia's path
