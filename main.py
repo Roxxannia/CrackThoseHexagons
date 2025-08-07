@@ -204,7 +204,13 @@ def strainCalc(centroids):
     print("Average size: ", averageSize)
     print("Standard deviation", sizeDeviation)
 
-    makeHistogram(sizes)
+    #makeHistogram(sizes)
+    filename = "hist_vat2.txt"
+    #counts, bin_edges = np.histogram(sizes, bins=40)
+    with open(filename, 'w') as f:
+        f.write("Sizes\n")
+        for size in sizes:
+            f.write(f"{size}\n")
     return averageSize
 
 def dislocationCalc(img, centroids, lines, squareSize, step):
@@ -301,7 +307,7 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/Vat4/S4_012.jpg"
+    imagePath = "to_use/Vat2/S2_008.jpg"
     # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
     
     # Estimated by hand
