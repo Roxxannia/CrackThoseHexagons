@@ -207,10 +207,11 @@ def strainCalc(centroids):
     #makeHistogram(sizes)
     filename = "hist_vat2.txt"
     #counts, bin_edges = np.histogram(sizes, bins=40)
-    with open(filename, 'w') as f:
-        f.write("Sizes\n")
+    with open(filename, 'a') as f:
+        f.write(f"Sizes {imagePath[12:18]}, ")
         for size in sizes:
-            f.write(f"{size}\n")
+            f.write(f"{size}, ")
+        f.write("\n")
     return averageSize
 
 def dislocationCalc(img, centroids, lines, squareSize, step):
@@ -307,11 +308,11 @@ if __name__ == "__main__":
     # Roxxannia's path
     # imagePath = "C:/Users/roxxa/OneDrive/University/Masters/Code/CrackThoseHexagons/VAT4-TESTING.jpg"
     # Sophie's path  
-    imagePath = "to_use/Vat2/S2_008.jpg"
+    imagePath = "to_use/Vat3/S3_007.jpg"
     # imagePath = "C:/Users/Owner/OneDrive/Documents/School/Masters/Research/Code/hexagons_git/CrackThoseHexagons/to_use/vat4/S4_009.jpg"
     
     # Estimated by hand
-    predictedHexagonSize = 17 #nm
+    predictedHexagonSize = 14 #nm
 
     minArea, maxArea = findThresholds(predictedHexagonSize)
     # print("min area: ", minArea)
@@ -322,12 +323,11 @@ if __name__ == "__main__":
     distanceThreshold = 7
 
     # an ODD int for Gaussian blur. Higher = more blur. (typically around 5 - 11)
-    blurInt = 13
+    blurInt = 11
     if blurInt % 2 == 0:
         raise ValueError("blurInt must be odd!")
 
     outline, blurredImage = preProcessing(imagePath, blurInt)
-
     hexagons, centroids, output = detectHexagons(imagePath, blurredImage, outline, minArea, maxArea, distanceThreshold)
 
     startPointEndPoint = nearestNeighbours(centroids) 
